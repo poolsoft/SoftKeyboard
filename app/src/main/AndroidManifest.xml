@@ -11,7 +11,7 @@
         android:theme="@style/AppTheme">
 
         <!-- Declares the input method service -->
-        <service android:name=".YeeIME"
+        <service android:name=".SoftKeyboard"
             android:label="@string/ime_name"
             android:permission="android.permission.BIND_INPUT_METHOD">
             <intent-filter>
