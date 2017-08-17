@@ -17,29 +17,36 @@
 package com.yiyun.softkeyboard;
 
 import android.content.Context;
-import android.inputmethodservice.Keyboard;
-import android.inputmethodservice.Keyboard.Key;
-import android.inputmethodservice.KeyboardView;
+import android.graphics.Canvas;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.inputmethod.InputMethodSubtype;
 
-public class LatinKeyboardView extends KeyboardView {
+import java.util.List;
+
+import com.yiyun.softkeyboard.CustomKeyboard.Key;
+
+public class LatinKeyboardView extends CustomKeyboardView {
 
     static final int KEYCODE_OPTIONS = -100;
     // TODO: Move this into android.inputmethodservice.Keyboard
     static final int KEYCODE_LANGUAGE_SWITCH = -101;
 
+    private Context mContext;
+
     public LatinKeyboardView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
     }
 
     public LatinKeyboardView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        mContext = context;
     }
 
     @Override
     protected boolean onLongPress(Key key) {
-        if (key.codes[0] == Keyboard.KEYCODE_CANCEL) {
+        if (key.codes[0] == CustomKeyboard.KEYCODE_CANCEL) {
             getOnKeyboardActionListener().onKey(KEYCODE_OPTIONS, null);
             return true;
         } else {
@@ -52,4 +59,24 @@ public class LatinKeyboardView extends KeyboardView {
         keyboard.setSpaceIcon(getResources().getDrawable(subtype.getIconResId()));
         invalidateAllKeys();
     }
+
+//    @Override
+//    public void onDraw(Canvas canvas) {
+//        super.onDraw(canvas);
+//
+//        List<Key> keys = getKeyboard().getKeys();
+//        for (Key key : keys) {
+//            if (key.label != null) {
+//                ColorDrawable dr = new ColorDrawable(mContext.getResources().getColor(R.color.colorPrimary));
+//                //Drawable dr = (Drawable) mContext.getResources().getColor(R.color.colorPrimary);//.getDrawable(R.mipmap.sym_keyboard_space);
+//                dr.setBounds(key.x, key.y, key.x + key.width, key.y + key.height);
+//                dr.draw(canvas);
+//            } else {
+//                ColorDrawable dr = new ColorDrawable(mContext.getResources().getColor(R.color.colorAccent));
+//                //Drawable dr = (Drawable) mContext.getResources().getDrawable(R.mipmap.sym_keyboard_search);
+//                dr.setBounds(key.x, key.y, key.x + key.width, key.y + key.height);
+//                dr.draw(canvas);
+//            }
+//        }
+//    }
 }

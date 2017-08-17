@@ -20,11 +20,10 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.graphics.drawable.Drawable;
-import android.inputmethodservice.Keyboard;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 
-public class LatinKeyboard extends Keyboard {
+public class LatinKeyboard extends CustomKeyboard {
 
     private Key mEnterKey;
     private Key mSpaceKey;
@@ -69,7 +68,7 @@ public class LatinKeyboard extends Keyboard {
             mEnterKey = key;
         } else if (key.codes[0] == ' ') {
             mSpaceKey = key;
-        } else if (key.codes[0] == Keyboard.KEYCODE_MODE_CHANGE) {
+        } else if (key.codes[0] == CustomKeyboard.KEYCODE_MODE_CHANGE) {
             mModeChangeKey = key;
             mSavedModeChangeKey = new LatinKey(res, parent, x, y, parser);
         } else if (key.codes[0] == LatinKeyboardView.KEYCODE_LANGUAGE_SWITCH) {

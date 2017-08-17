@@ -20,7 +20,7 @@ import android.view.inputmethod.InputMethodSubtype;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SoftKeyboard extends InputMethodService implements KeyboardView.OnKeyboardActionListener {
+public class SoftKeyboard extends InputMethodService implements CustomKeyboardView.OnKeyboardActionListener {
 
     static final boolean DEBUG = false;
 
@@ -91,8 +91,7 @@ public class SoftKeyboard extends InputMethodService implements KeyboardView.OnK
      * a configuration change.
      */
     @Override public View onCreateInputView() {
-        mInputView = (LatinKeyboardView) getLayoutInflater().inflate(
-                R.layout.input, null);
+        mInputView = (LatinKeyboardView) getLayoutInflater().inflate(R.layout.input, null);
         mInputView.setOnKeyboardActionListener(this);
         setLatinKeyboard(mQwertyKeyboard);
         return mInputView;
@@ -237,12 +236,12 @@ public class SoftKeyboard extends InputMethodService implements KeyboardView.OnK
         setLatinKeyboard(mCurKeyboard);
         mInputView.closing();
         final InputMethodSubtype subtype = mInputMethodManager.getCurrentInputMethodSubtype();
-        mInputView.setSubtypeOnSpaceKey(subtype);
+        //mInputView.setSubtypeOnSpaceKey(subtype);
     }
 
     @Override
     public void onCurrentInputMethodSubtypeChanged(InputMethodSubtype subtype) {
-        mInputView.setSubtypeOnSpaceKey(subtype);
+        //mInputView.setSubtypeOnSpaceKey(subtype);
     }
 
     /**
@@ -503,7 +502,7 @@ public class SoftKeyboard extends InputMethodService implements KeyboardView.OnK
             // Show a menu or somethin'
         } else if (primaryCode == Keyboard.KEYCODE_MODE_CHANGE
                 && mInputView != null) {
-            Keyboard current = mInputView.getKeyboard();
+            CustomKeyboard current = mInputView.getKeyboard();
             if (current == mSymbolsKeyboard || current == mSymbolsShiftedKeyboard) {
                 setLatinKeyboard(mQwertyKeyboard);
             } else {
@@ -577,7 +576,7 @@ public class SoftKeyboard extends InputMethodService implements KeyboardView.OnK
             return;
         }
 
-        Keyboard currentKeyboard = mInputView.getKeyboard();
+        CustomKeyboard currentKeyboard = mInputView.getKeyboard();
         if (mQwertyKeyboard == currentKeyboard) {
             // Alphabet keyboard
             checkToggleCapsLock();
