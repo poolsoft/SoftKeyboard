@@ -28,10 +28,6 @@ import com.yiyun.softkeyboard.CustomKeyboard.Key;
 
 public class LatinKeyboardView extends CustomKeyboardView {
 
-    static final int KEYCODE_OPTIONS = -100;
-    // TODO: Move this into android.inputmethodservice.Keyboard
-    static final int KEYCODE_LANGUAGE_SWITCH = -101;
-
     private Context mContext;
 
     public LatinKeyboardView(Context context, AttributeSet attrs) {
@@ -46,8 +42,8 @@ public class LatinKeyboardView extends CustomKeyboardView {
 
     @Override
     protected boolean onLongPress(Key key) {
-        if (key.codes[0] == CustomKeyboard.KEYCODE_CANCEL) {
-            getOnKeyboardActionListener().onKey(KEYCODE_OPTIONS, null);
+        if (key.codes[0] == KeyCode.KEYCODE_CANCEL) {
+            getOnKeyboardActionListener().onKey(KeyCode.KEYCODE_OPTIONS, null, "");
             return true;
         } else {
             return super.onLongPress(key);

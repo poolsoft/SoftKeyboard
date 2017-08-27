@@ -89,6 +89,8 @@
     </declare-styleable>
 
     <declare-styleable name="Keyboard_Key">
+        <!-- Key background state list drawable -->
+        <attr name="background" format="reference" />
         <!-- The unicode value or comma-separated values that this key outputs. -->
         <attr name="codes" format="integer|string" />
         <!-- The XML keyboard layout of any popup keyboard. -->

@@ -10,6 +10,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.util.Xml;
+import android.view.inputmethod.EditorInfo;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -36,12 +37,12 @@ public class CustomKeyboard {
     public static final int EDGE_TOP = 0x04;
     public static final int EDGE_BOTTOM = 0x08;
 
-    public static final int KEYCODE_SHIFT = -1;
-    public static final int KEYCODE_MODE_CHANGE = -2;
-    public static final int KEYCODE_CANCEL = -3;
-    public static final int KEYCODE_DONE = -4;
-    public static final int KEYCODE_DELETE = -5;
-    public static final int KEYCODE_ALT = -6;
+    /** Some special keys **/
+    private Key mEnterKey;
+    private Key mSpaceKey;
+    private Key mModeChangeKey;
+    private Key mLanguageSwitchKey;
+    private Key mTranslateKey;
 
     /** Keyboard label **/
     private CharSequence mLabel;
@@ -199,10 +200,12 @@ public class CustomKeyboard {
          * being the most important.
          */
         public int[] codes;
-
+        /**
+         * Key background
+         */
+        public Drawable background;
         /** Label to display */
         public CharSequence label;
-
         /** Icon to display instead of a label. Icon takes precedence over a label */
         public Drawable icon;
         /** Preview version of the icon, for the preview popup */
@@ -317,12 +320,11 @@ public class CustomKeyboard {
             a = res.obtainAttributes(Xml.asAttributeSet(parser),
                     R.styleable.Keyboard_Key);
 
-            Log.d(TAG, "11111 n = "+a.getIndexCount());
+            background = a.getDrawable(R.styleable.Keyboard_Key_background);
 
             this.x += gap;
             TypedValue codesValue = new TypedValue();
             a.getValue(R.styleable.Keyboard_Key_codes, codesValue);
-            Log.d(TAG, "codeValue type = "+codesValue.type+" "+codesValue.string);
             if (codesValue.type == TypedValue.TYPE_INT_DEC
                     || codesValue.type == TypedValue.TYPE_INT_HEX) {
                 codes = new int[] { codesValue.data };
@@ -756,7 +758,20 @@ public class CustomKeyboard {
 
     protected Key createKeyFromXml(Resources res, Row parent, int x, int y,
                                             XmlResourceParser parser) {
-        return new Key(res, parent, x, y, parser);
+        Log.d("SoftKeyboard", "CustomKeyboard createKeyFromXml");
+        Key key = new Key(res, parent, x, y, parser);
+        if (key.codes[0] == 10) {
+            mEnterKey = key;
+        } else if (key.codes[0] == ' ') {
+            mSpaceKey = key;
+        } else if (key.codes[0] == KeyCode.KEYCODE_MODE_CHANGE) {
+            mModeChangeKey = key;
+        } else if (key.codes[0] == KeyCode.KEYCODE_LANGUAGE_SWITCH) {
+            mLanguageSwitchKey = key;
+        } else if (key.codes[0] == KeyCode.KEYCODE_TRANSLATE) {
+            mTranslateKey = key;
+        }
+        return key;
     }
 
     private void loadKeyboard(Context context, XmlResourceParser parser) {
@@ -791,7 +806,7 @@ public class CustomKeyboard {
                         inKey = true;
                         key = createKeyFromXml(res, currentRow, x, y, parser);
                         mKeys.add(key);
-                        if (key.codes[0] == KEYCODE_SHIFT) {
+                        if (key.codes[0] == KeyCode.KEYCODE_SHIFT) {
                             // Find available shift key slot and put this shift key in it
                             for (int i = 0; i < mShiftKeys.length; i++) {
                                 if (mShiftKeys[i] == null) {
@@ -801,7 +816,7 @@ public class CustomKeyboard {
                                 }
                             }
                             mModifierKeys.add(key);
-                        } else if (key.codes[0] == KEYCODE_ALT) {
+                        } else if (key.codes[0] == KeyCode.KEYCODE_ALT) {
                             mModifierKeys.add(key);
                         }
                         currentRow.mKeys.add(key);
@@ -876,5 +891,51 @@ public class CustomKeyboard {
             return Math.round(a.getFraction(index, base, base, defValue));
         }
         return defValue;
+    }
+
+    /**
+     * This looks at the ime options given by the current editor, to set the
+     * appropriate label on the keyboard's enter key (if it has one).
+     */
+    void setImeOptions(Resources res, int options) {
+        if (mEnterKey == null) {
+            return;
+        }
+
+        switch (options&(EditorInfo.IME_MASK_ACTION|EditorInfo.IME_FLAG_NO_ENTER_ACTION)) {
+            case EditorInfo.IME_ACTION_GO:
+                mEnterKey.iconPreview = null;
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
+                mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
+                //mEnterKey.label = res.getText(R.string.label_go_key);
+                break;
+            case EditorInfo.IME_ACTION_NEXT:
+                mEnterKey.iconPreview = null;
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
+                mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
+                //mEnterKey.label = res.getText(R.string.label_next_key);
+                break;
+            case EditorInfo.IME_ACTION_SEARCH:
+                mEnterKey.iconPreview = null;
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
+                //mEnterKey.icon = res.getDrawable(R.drawable.icon_search);
+                mEnterKey.label = res.getText(R.string.label_translate_key);
+                break;
+            case EditorInfo.IME_ACTION_SEND:
+                mEnterKey.iconPreview = null;
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
+                mEnterKey.icon = res.getDrawable(R.drawable.icon_send);
+                //mEnterKey.label = res.getText(R.string.label_send_key);
+                break;
+            default:
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func);
+                mEnterKey.icon = res.getDrawable(R.drawable.icon_return);
+                mEnterKey.label = null;
+                break;
+        }
+    }
+
+    public Key getTranslateKey() {
+        return mTranslateKey;
     }
 }

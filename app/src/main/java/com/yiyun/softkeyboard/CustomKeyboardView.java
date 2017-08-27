@@ -72,7 +72,7 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
          * These codes are useful to correct for accidental presses of a key adjacent to
          * the intended key.
          */
-        void onKey(int primaryCode, int[] keyCodes);
+        void onKey(int primaryCode, int[] keyCodes, CharSequence label);
 
         /**
          * Sends a sequence of characters to the listener.
@@ -101,9 +101,10 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
         void swipeUp();
     }
 
+    private static final String TAG = "[CustomKeyboardView]";
     private static final boolean DEBUG = false;
     private static final int NOT_A_KEY = -1;
-    private static final int[] KEY_DELETE = { CustomKeyboard.KEYCODE_DELETE };
+    private static final int[] KEY_DELETE = { KeyCode.KEYCODE_DELETE };
     private static final int[] LONG_PRESSABLE_STATE_SET = { android.R.attr.state_long_pressable };
 
     private CustomKeyboard mKeyboard;
@@ -253,10 +254,7 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
 
         int previewLayout = 0;
         int keyTextSize = 0;
-
         int n = a.getIndexCount();
-        Log.d("Keyboard", "KeyboardView attr count = "+n);
-
         for (int i = 0; i < n; i++) {
             int attr = a.getIndex(i);
 
@@ -513,6 +511,15 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
     }
 
     /**
+     * Set icon drawable of Translate Key.
+     * @param icon
+     */
+    public void setTranslateKeyIcon(Drawable icon) {
+        mKeyboard.getTranslateKey().icon = icon;
+        this.invalidateKey(mKeyboard.getTranslateKey());
+    }
+
+    /**
      * Enables or disables the key feedback popup. This is a popup that shows a magnified
      * version of the depressed key. By default the preview is enabled.
      * @param previewEnabled whether or not to enable the key feedback popup
@@ -652,13 +659,13 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
         if (mKeyboard == null) return;
 
         final Paint paint = mPaint;
-        final Drawable keyBackground = mKeyBackground;
         final Rect clipRegion = mClipRegion;
         final Rect padding = mPadding;
         final int kbdPaddingLeft = mPaddingLeft;
         final int kbdPaddingTop = mPaddingTop;
         final Key[] keys = mKeys;
         final Key invalidKey = mInvalidatedKey;
+        Drawable keyBackground;
 
         paint.setColor(mKeyTextColor);
         boolean drawSingleKey = false;
@@ -679,6 +686,11 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
                 continue;
             }
             int[] drawableState = key.getCurrentDrawableState();
+            if (key.background != null) {
+                keyBackground = key.background;
+            } else {
+                keyBackground = mKeyBackground;
+            }
             keyBackground.setState(drawableState);
 
             // Switch the character to uppercase if shift is pressed
@@ -687,6 +699,7 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
             final Rect bounds = keyBackground.getBounds();
             if (key.width != bounds.right ||
                     key.height != bounds.bottom) {
+                //Log.d("[Keyboard]", "key height = "+key.height+" "+getResources().getDisplayMetrics().density);
                 keyBackground.setBounds(0, 0, key.width, key.height);
             }
             canvas.translate(key.x + kbdPaddingLeft, key.y + kbdPaddingTop);
@@ -694,16 +707,25 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
 
             if (label != null) {
                 // For characters, use large font. For labels like "Done", use small font.
+                int tmpTextSize;
                 if (label.length() > 1 && key.codes.length < 2) {
                     paint.setTextSize(mLabelTextSize);
-                    paint.setTypeface(Typeface.DEFAULT_BOLD);
+                    paint.setTypeface(Typeface.DEFAULT);
+                    tmpTextSize = mLabelTextSize;
                 } else {
                     paint.setTextSize(mKeyTextSize);
                     paint.setTypeface(Typeface.DEFAULT);
+                    tmpTextSize = mKeyTextSize;
                 }
                 // Draw a drop shadow for the text
-                paint.setShadowLayer(mShadowRadius, 0, 0, mShadowColor);
+                //paint.setShadowLayer(mShadowRadius, 0, 0, mShadowColor);
                 // Draw the text
+                float labelTextWidth = paint.measureText(label);
+                while (labelTextWidth > 0.8 * key.width) {
+                    tmpTextSize --;
+                    paint.setTextSize(tmpTextSize);
+                    labelTextWidth = paint.measureText(label);
+                }
                 canvas.drawText(label,
                         (key.width - padding.left - padding.right) / 2
                                 + padding.left,
@@ -720,6 +742,7 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
                 canvas.translate(drawableX, drawableY);
                 key.icon.setBounds(0, 0,
                         key.icon.getIntrinsicWidth(), key.icon.getIntrinsicHeight());
+                key.icon.setState(drawableState);
                 key.icon.draw(canvas);
                 canvas.translate(-drawableX, -drawableY);
             }
@@ -813,13 +836,13 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
                 // Multi-tap
                 if (mInMultiTap) {
                     if (mTapCount != -1) {
-                        mKeyboardActionListener.onKey(CustomKeyboard.KEYCODE_DELETE, KEY_DELETE);
+                        mKeyboardActionListener.onKey(KeyCode.KEYCODE_DELETE, KEY_DELETE, "");
                     } else {
                         mTapCount = 0;
                     }
                     code = key.codes[mTapCount];
                 }
-                mKeyboardActionListener.onKey(code, codes);
+                mKeyboardActionListener.onKey(code, codes, key.label);
                 mKeyboardActionListener.onRelease(code);
             }
             mLastSentIndex = index;
@@ -1051,6 +1074,15 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
                 key.x + key.width + mPaddingLeft, key.y + key.height + mPaddingTop);
     }
 
+    public void invalidateKey(Key key) {
+        mInvalidatedKey = key;
+        mDirtyRect.union(key.x + mPaddingLeft, key.y + mPaddingTop,
+                key.x + key.width + mPaddingLeft, key.y + key.height + mPaddingTop);
+        onBufferDraw();
+        invalidate(key.x + mPaddingLeft, key.y + mPaddingTop,
+                key.x + key.width + mPaddingLeft, key.y + key.height + mPaddingTop);
+    }
+
     private boolean openPopupIfRequired(MotionEvent me) {
         // Check if we have a popup layout specified first.
         if (mPopupLayout == 0) {
@@ -1091,8 +1123,8 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
                         R.id.closeButton);
                 if (closeButton != null) closeButton.setOnClickListener(this);
                 mMiniKeyboard.setOnKeyboardActionListener(new CustomKeyboardView.OnKeyboardActionListener() {
-                    public void onKey(int primaryCode, int[] keyCodes) {
-                        mKeyboardActionListener.onKey(primaryCode, keyCodes);
+                    public void onKey(int primaryCode, int[] keyCodes, CharSequence label) {
+                        mKeyboardActionListener.onKey(primaryCode, keyCodes, label);
                         dismissPopupKeyboard();
                     }
 

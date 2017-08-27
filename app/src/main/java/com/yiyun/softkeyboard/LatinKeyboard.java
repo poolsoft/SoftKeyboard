@@ -19,7 +19,9 @@ package com.yiyun.softkeyboard;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 
@@ -50,6 +52,8 @@ public class LatinKeyboard extends CustomKeyboard {
      * {@link #mLanguageSwitchKey} is changed.
      */
     private Key mSavedLanguageSwitchKey;
+
+    private Key mTranslateKey;
     
     public LatinKeyboard(Context context, int xmlLayoutResId) {
         super(context, xmlLayoutResId);
@@ -63,19 +67,26 @@ public class LatinKeyboard extends CustomKeyboard {
     @Override
     protected Key createKeyFromXml(Resources res, Row parent, int x, int y, 
             XmlResourceParser parser) {
+        Log.d("SoftKeyboard", "LatinKeyboard createKeyFromXml");
         Key key = new LatinKey(res, parent, x, y, parser);
         if (key.codes[0] == 10) {
             mEnterKey = key;
         } else if (key.codes[0] == ' ') {
             mSpaceKey = key;
-        } else if (key.codes[0] == CustomKeyboard.KEYCODE_MODE_CHANGE) {
+        } else if (key.codes[0] == KeyCode.KEYCODE_MODE_CHANGE) {
             mModeChangeKey = key;
             mSavedModeChangeKey = new LatinKey(res, parent, x, y, parser);
-        } else if (key.codes[0] == LatinKeyboardView.KEYCODE_LANGUAGE_SWITCH) {
+        } else if (key.codes[0] == KeyCode.KEYCODE_LANGUAGE_SWITCH) {
             mLanguageSwitchKey = key;
             mSavedLanguageSwitchKey = new LatinKey(res, parent, x, y, parser);
+        } else if (key.codes[0] == KeyCode.KEYCODE_TRANSLATE) {
+            mTranslateKey = key;
         }
         return key;
+    }
+
+    public Key getTranslateKey() {
+        return mTranslateKey;
     }
 
     /**
@@ -113,25 +124,31 @@ public class LatinKeyboard extends CustomKeyboard {
         switch (options&(EditorInfo.IME_MASK_ACTION|EditorInfo.IME_FLAG_NO_ENTER_ACTION)) {
             case EditorInfo.IME_ACTION_GO:
                 mEnterKey.iconPreview = null;
-                mEnterKey.icon = null;
-                mEnterKey.label = res.getText(R.string.label_go_key);
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
+                mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
+                //mEnterKey.label = res.getText(R.string.label_go_key);
                 break;
             case EditorInfo.IME_ACTION_NEXT:
                 mEnterKey.iconPreview = null;
-                mEnterKey.icon = null;
-                mEnterKey.label = res.getText(R.string.label_next_key);
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
+                mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
+                //mEnterKey.label = res.getText(R.string.label_next_key);
                 break;
             case EditorInfo.IME_ACTION_SEARCH:
-                mEnterKey.icon = res.getDrawable(R.mipmap.sym_keyboard_search);
-                mEnterKey.label = null;
+                mEnterKey.iconPreview = null;
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
+                //mEnterKey.icon = res.getDrawable(R.drawable.icon_search);
+                mEnterKey.label = res.getText(R.string.label_translate_key);
                 break;
             case EditorInfo.IME_ACTION_SEND:
                 mEnterKey.iconPreview = null;
-                mEnterKey.icon = null;
-                mEnterKey.label = res.getText(R.string.label_send_key);
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
+                mEnterKey.icon = res.getDrawable(R.drawable.icon_send);
+                //mEnterKey.label = res.getText(R.string.label_send_key);
                 break;
             default:
-                mEnterKey.icon = res.getDrawable(R.mipmap.sym_keyboard_return);
+                mEnterKey.background = res.getDrawable(R.drawable.selector_key_func);
+                mEnterKey.icon = res.getDrawable(R.drawable.icon_return);
                 mEnterKey.label = null;
                 break;
         }
@@ -156,7 +173,7 @@ public class LatinKeyboard extends CustomKeyboard {
          */
         @Override
         public boolean isInside(int x, int y) {
-            return super.isInside(x, codes[0] == KEYCODE_CANCEL ? y - 10 : y);
+            return super.isInside(x, codes[0] == KeyCode.KEYCODE_CANCEL ? y - 10 : y);
         }
     }
 

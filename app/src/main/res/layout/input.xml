@@ -18,7 +18,7 @@
 */
 -->
 
-<com.yiyun.softkeyboard.LatinKeyboardView
+<com.yiyun.softkeyboard.CustomKeyboardView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/keyboard"
         android:layout_alignParentBottom="true"

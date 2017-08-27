@@ -3,10 +3,10 @@ package com.yiyun.softkeyboard;
 import android.app.Dialog;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
-import android.inputmethodservice.KeyboardView;
 import android.os.IBinder;
 import android.text.InputType;
 import android.text.method.MetaKeyKeyListener;
+import android.util.Log;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
@@ -36,7 +36,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
 
     private InputMethodManager mInputMethodManager;
 
-    private LatinKeyboardView mInputView;
+    private CustomKeyboardView mInputView;
     private CandidateView mCandidateView;
     private CompletionInfo[] mCompletions;
 
@@ -47,12 +47,13 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private boolean mCapsLock;
     private long mLastShiftTime;
     private long mMetaState;
+    private int mTransKeyState;
 
-    private LatinKeyboard mSymbolsKeyboard;
-    private LatinKeyboard mSymbolsShiftedKeyboard;
-    private LatinKeyboard mQwertyKeyboard;
+    private CustomKeyboard mSymbolsKeyboard;
+    private CustomKeyboard mSymbolsShiftedKeyboard;
+    private CustomKeyboard mQwertyKeyboard;
 
-    private LatinKeyboard mCurKeyboard;
+    private CustomKeyboard mCurKeyboard;
 
     private String mWordSeparators;
 
@@ -79,9 +80,9 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             if (displayWidth == mLastDisplayWidth) return;
             mLastDisplayWidth = displayWidth;
         }
-        mQwertyKeyboard = new LatinKeyboard(this, R.xml.qwerty);
-        mSymbolsKeyboard = new LatinKeyboard(this, R.xml.symbols);
-        mSymbolsShiftedKeyboard = new LatinKeyboard(this, R.xml.symbols_shift);
+        mQwertyKeyboard = new CustomKeyboard(this, R.xml.qwerty);
+        mSymbolsKeyboard = new CustomKeyboard(this, R.xml.symbols);
+        mSymbolsShiftedKeyboard = new CustomKeyboard(this, R.xml.symbols_shift);
     }
 
     /**
@@ -91,16 +92,16 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
      * a configuration change.
      */
     @Override public View onCreateInputView() {
-        mInputView = (LatinKeyboardView) getLayoutInflater().inflate(R.layout.input, null);
+        mInputView = (CustomKeyboardView) getLayoutInflater().inflate(R.layout.input, null);
         mInputView.setOnKeyboardActionListener(this);
-        setLatinKeyboard(mQwertyKeyboard);
+        setKeyboard(mQwertyKeyboard);
         return mInputView;
     }
 
-    private void setLatinKeyboard(LatinKeyboard nextKeyboard) {
+    private void setKeyboard(CustomKeyboard nextKeyboard) {
         final boolean shouldSupportLanguageSwitchKey =
                 mInputMethodManager.shouldOfferSwitchingToNextInputMethod(getToken());
-        nextKeyboard.setLanguageSwitchKeyVisibility(shouldSupportLanguageSwitchKey);
+        //nextKeyboard.setLanguageSwitchKeyVisibility(true);
         mInputView.setKeyboard(nextKeyboard);
     }
 
@@ -233,7 +234,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     @Override public void onStartInputView(EditorInfo attribute, boolean restarting) {
         super.onStartInputView(attribute, restarting);
         // Apply the selected keyboard to the input view.
-        setLatinKeyboard(mCurKeyboard);
+        setKeyboard(mCurKeyboard);
         mInputView.closing();
         final InputMethodSubtype subtype = mInputMethodManager.getCurrentInputMethodSubtype();
         //mInputView.setSubtypeOnSpaceKey(subtype);
@@ -321,7 +322,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             }
         }
 
-        onKey(c, null);
+        onKey(c, null, "");
 
         return true;
     }
@@ -350,7 +351,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
                 // composing text for the user, we want to modify that instead
                 // of let the application to the delete itself.
                 if (mComposing.length() > 0) {
-                    onKey(Keyboard.KEYCODE_DELETE, null);
+                    onKey(Keyboard.KEYCODE_DELETE, null, "");
                     return true;
                 }
                 break;
@@ -479,38 +480,39 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     }
 
     // Implementation of KeyboardViewListener
-
-    public void onKey(int primaryCode, int[] keyCodes) {
-        if (isWordSeparator(primaryCode)) {
+    public void onKey(int primaryCode, int[] keyCodes, CharSequence label) {
+        /*if (isWordSeparator(primaryCode)) {
             // Handle separator
             if (mComposing.length() > 0) {
                 commitTyped(getCurrentInputConnection());
             }
             sendKey(primaryCode);
             updateShiftKeyState(getCurrentInputEditorInfo());
-        } else if (primaryCode == Keyboard.KEYCODE_DELETE) {
+        } else */if (primaryCode == KeyCode.KEYCODE_DELETE) {
             handleBackspace();
-        } else if (primaryCode == Keyboard.KEYCODE_SHIFT) {
+        } else if (primaryCode == KeyCode.KEYCODE_SHIFT) {
             handleShift();
-        } else if (primaryCode == Keyboard.KEYCODE_CANCEL) {
+        } else if (primaryCode == KeyCode.KEYCODE_CANCEL) {
             handleClose();
             return;
-        } else if (primaryCode == LatinKeyboardView.KEYCODE_LANGUAGE_SWITCH) {
+        } else if (primaryCode == KeyCode.KEYCODE_LANGUAGE_SWITCH) {
             handleLanguageSwitch();
             return;
-        } else if (primaryCode == LatinKeyboardView.KEYCODE_OPTIONS) {
+        } else if (primaryCode == KeyCode.KEYCODE_OPTIONS) {
             // Show a menu or somethin'
         } else if (primaryCode == Keyboard.KEYCODE_MODE_CHANGE
                 && mInputView != null) {
             CustomKeyboard current = mInputView.getKeyboard();
             if (current == mSymbolsKeyboard || current == mSymbolsShiftedKeyboard) {
-                setLatinKeyboard(mQwertyKeyboard);
+                setKeyboard(mQwertyKeyboard);
             } else {
-                setLatinKeyboard(mSymbolsKeyboard);
+                setKeyboard(mSymbolsKeyboard);
                 mSymbolsKeyboard.setShifted(false);
             }
+        } else if (primaryCode == KeyCode.KEYCODE_TRANSLATE) {
+            handleTranslateKey();
         } else {
-            handleCharacter(primaryCode, keyCodes);
+            handleCharacter(primaryCode, keyCodes, label);
         }
     }
 
@@ -555,6 +557,26 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         }
     }
 
+    private void handleTranslateKey() {
+        switch (mTransKeyState) {
+            case 0:
+                mTransKeyState = 1;
+                mInputView.setTranslateKeyIcon(getResources().getDrawable(R.drawable.icon_trans_yi));
+                break;
+            case 1:
+                mTransKeyState = 2;
+                mInputView.setTranslateKeyIcon(getResources().getDrawable(R.drawable.icon_trans_shuang));
+                break;
+            case 2:
+                mTransKeyState = 0;
+                mInputView.setTranslateKeyIcon(getResources().getDrawable(R.drawable.icon_trans_yuan));
+                break;
+
+            default:
+                break;
+        }
+    }
+
     private void handleBackspace() {
         final int length = mComposing.length();
         if (length > 1) {
@@ -583,29 +605,31 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             mInputView.setShifted(mCapsLock || !mInputView.isShifted());
         } else if (currentKeyboard == mSymbolsKeyboard) {
             mSymbolsKeyboard.setShifted(true);
-            setLatinKeyboard(mSymbolsShiftedKeyboard);
+            setKeyboard(mSymbolsShiftedKeyboard);
             mSymbolsShiftedKeyboard.setShifted(true);
         } else if (currentKeyboard == mSymbolsShiftedKeyboard) {
             mSymbolsShiftedKeyboard.setShifted(false);
-            setLatinKeyboard(mSymbolsKeyboard);
+            setKeyboard(mSymbolsKeyboard);
             mSymbolsKeyboard.setShifted(false);
         }
     }
 
-    private void handleCharacter(int primaryCode, int[] keyCodes) {
+    private void handleCharacter(int primaryCode, int[] keyCodes, CharSequence label) {
+        Log.d("[SoftKeyboard]", "handleCharacter "+label);
         if (isInputViewShown()) {
             if (mInputView.isShifted()) {
                 primaryCode = Character.toUpperCase(primaryCode);
             }
         }
         if (isAlphabet(primaryCode) && mPredictionOn) {
+            Log.d("[SoftKeyboard]", "mPredictionOn");
             mComposing.append((char) primaryCode);
             getCurrentInputConnection().setComposingText(mComposing, 1);
             updateShiftKeyState(getCurrentInputEditorInfo());
             updateCandidates();
         } else {
-            getCurrentInputConnection().commitText(
-                    String.valueOf((char) primaryCode), 1);
+            //getCurrentInputConnection().commitText(String.valueOf((char) primaryCode), 1);
+            getCurrentInputConnection().commitText(label, 1);
         }
     }
 
@@ -632,13 +656,14 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     }
 
     private void checkToggleCapsLock() {
-        long now = System.currentTimeMillis();
-        if (mLastShiftTime + 800 > now) {
-            mCapsLock = !mCapsLock;
-            mLastShiftTime = 0;
-        } else {
-            mLastShiftTime = now;
-        }
+//        long now = System.currentTimeMillis();
+//        if (mLastShiftTime + 800 > now) {
+//            mCapsLock = !mCapsLock;
+//            mLastShiftTime = 0;
+//        } else {
+//            mLastShiftTime = now;
+//        }
+        mCapsLock = !mCapsLock;
     }
 
     private String getWordSeparators() {
