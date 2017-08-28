@@ -206,6 +206,8 @@ public class CustomKeyboard {
         public Drawable background;
         /** Label to display */
         public CharSequence label;
+        /** Label color */
+        public int labelColor;
         /** Icon to display instead of a label. Icon takes precedence over a label */
         public Drawable icon;
         /** Preview version of the icon, for the preview popup */
@@ -249,6 +251,8 @@ public class CustomKeyboard {
         public int popupResId;
         /** Whether this key repeats itself when held down */
         public boolean repeatable;
+        /** Whether show preview */
+        public boolean showPreview;
 
 
         private final static int[] KEY_STATE_NORMAL_ON = {
@@ -337,25 +341,21 @@ public class CustomKeyboard {
                 iconPreview.setBounds(0, 0, iconPreview.getIntrinsicWidth(),
                         iconPreview.getIntrinsicHeight());
             }
-            popupCharacters = a.getText(
-                    R.styleable.Keyboard_Key_popupCharacters);
-            popupResId = a.getResourceId(
-                    R.styleable.Keyboard_Key_popupKeyboard, 0);
-            repeatable = a.getBoolean(
-                    R.styleable.Keyboard_Key_isRepeatable, false);
-            modifier = a.getBoolean(
-                    R.styleable.Keyboard_Key_isModifier, false);
-            sticky = a.getBoolean(
-                    R.styleable.Keyboard_Key_isSticky, false);
+            popupCharacters = a.getText(R.styleable.Keyboard_Key_popupCharacters);
+            popupResId = a.getResourceId(R.styleable.Keyboard_Key_popupKeyboard, 0);
+            repeatable = a.getBoolean(R.styleable.Keyboard_Key_isRepeatable, false);
+            showPreview = a.getBoolean(R.styleable.Keyboard_Key_showPreview, false);
+            modifier = a.getBoolean(R.styleable.Keyboard_Key_isModifier, false);
+            sticky = a.getBoolean(R.styleable.Keyboard_Key_isSticky, false);
             edgeFlags = a.getInt(R.styleable.Keyboard_Key_keyEdgeFlags, 0);
             edgeFlags |= parent.rowEdgeFlags;
 
-            icon = a.getDrawable(
-                    R.styleable.Keyboard_Key_keyIcon);
+            icon = a.getDrawable(R.styleable.Keyboard_Key_keyIcon);
             if (icon != null) {
                 icon.setBounds(0, 0, icon.getIntrinsicWidth(), icon.getIntrinsicHeight());
             }
             label = a.getText(R.styleable.Keyboard_Key_keyLabel);
+            labelColor = a.getColor(R.styleable.Keyboard_Key_keyLabelColor, 0xFF000000);
             text = a.getText(R.styleable.Keyboard_Key_keyOutputText);
 
             if (codes == null && !TextUtils.isEmpty(label)) {
@@ -766,7 +766,7 @@ public class CustomKeyboard {
             mSpaceKey = key;
         } else if (key.codes[0] == KeyCode.KEYCODE_MODE_CHANGE) {
             mModeChangeKey = key;
-        } else if (key.codes[0] == KeyCode.KEYCODE_LANGUAGE_SWITCH) {
+        } else if (key.codes[0] == KeyCode.KEYCODE_LANGUAGE_CHANGE) {
             mLanguageSwitchKey = key;
         } else if (key.codes[0] == KeyCode.KEYCODE_TRANSLATE) {
             mTranslateKey = key;
@@ -897,7 +897,7 @@ public class CustomKeyboard {
      * This looks at the ime options given by the current editor, to set the
      * appropriate label on the keyboard's enter key (if it has one).
      */
-    void setImeOptions(Resources res, int options) {
+    public void setImeOptions(Resources res, int options) {
         if (mEnterKey == null) {
             return;
         }
@@ -906,26 +906,30 @@ public class CustomKeyboard {
             case EditorInfo.IME_ACTION_GO:
                 mEnterKey.iconPreview = null;
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
-                mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
-                //mEnterKey.label = res.getText(R.string.label_go_key);
+                //mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
+                mEnterKey.label = res.getText(R.string.label_go_key);
+                mEnterKey.labelColor = res.getColor(R.color.colorKeyActiveLabel);
                 break;
             case EditorInfo.IME_ACTION_NEXT:
                 mEnterKey.iconPreview = null;
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
-                mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
-                //mEnterKey.label = res.getText(R.string.label_next_key);
+                //mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
+                mEnterKey.label = res.getText(R.string.label_next_key);
+                mEnterKey.labelColor = res.getColor(R.color.colorKeyActiveLabel);
                 break;
             case EditorInfo.IME_ACTION_SEARCH:
                 mEnterKey.iconPreview = null;
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
                 //mEnterKey.icon = res.getDrawable(R.drawable.icon_search);
-                mEnterKey.label = res.getText(R.string.label_translate_key);
+                mEnterKey.label = res.getText(R.string.label_search_key);
+                mEnterKey.labelColor = res.getColor(R.color.colorKeyActiveLabel);
                 break;
             case EditorInfo.IME_ACTION_SEND:
                 mEnterKey.iconPreview = null;
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
-                mEnterKey.icon = res.getDrawable(R.drawable.icon_send);
-                //mEnterKey.label = res.getText(R.string.label_send_key);
+                //mEnterKey.icon = res.getDrawable(R.drawable.icon_send);
+                mEnterKey.label = res.getText(R.string.label_send_key);
+                mEnterKey.labelColor = res.getColor(R.color.colorKeyActiveLabel);
                 break;
             default:
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func);

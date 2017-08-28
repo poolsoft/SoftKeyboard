@@ -10,4 +10,6 @@
     <color name="candidate_background">#bbffffff</color>
 
     <color name="colorBgKeyActive">#FF307bf6</color>
+    <color name="colorKeyPreviewText">#FF000000</color>
+    <color name="colorKeyActiveLabel">#FFFFFFFF</color>
 </resources>

@@ -64,7 +64,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     @Override public void onCreate() {
         super.onCreate();
         mInputMethodManager = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-        mWordSeparators = getResources().getString(R.string.word_separators);
+        mWordSeparators = getResources().getString(R.string.word_separator_space/*word_separators*/);
     }
 
     /**
@@ -205,7 +205,10 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
 
         // Update the label on the enter key, depending on what the application
         // says it will do.
-        mCurKeyboard.setImeOptions(getResources(), attribute.imeOptions);
+        //mCurKeyboard.setImeOptions(getResources(), attribute.imeOptions);
+        mSymbolsKeyboard.setImeOptions(getResources(), attribute.imeOptions);
+        mSymbolsShiftedKeyboard.setImeOptions(getResources(), attribute.imeOptions);
+        mQwertyKeyboard.setImeOptions(getResources(), attribute.imeOptions);
     }
 
     /**
@@ -481,36 +484,28 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
 
     // Implementation of KeyboardViewListener
     public void onKey(int primaryCode, int[] keyCodes, CharSequence label) {
-        /*if (isWordSeparator(primaryCode)) {
+        if (isWordSeparator(primaryCode)) {
             // Handle separator
             if (mComposing.length() > 0) {
                 commitTyped(getCurrentInputConnection());
             }
             sendKey(primaryCode);
             updateShiftKeyState(getCurrentInputEditorInfo());
-        } else */if (primaryCode == KeyCode.KEYCODE_DELETE) {
+        } else if (primaryCode == KeyCode.KEYCODE_DELETE) {
             handleBackspace();
         } else if (primaryCode == KeyCode.KEYCODE_SHIFT) {
             handleShift();
         } else if (primaryCode == KeyCode.KEYCODE_CANCEL) {
             handleClose();
             return;
-        } else if (primaryCode == KeyCode.KEYCODE_LANGUAGE_SWITCH) {
+        } else if (primaryCode == KeyCode.KEYCODE_MODE_CHANGE && mInputView != null) {
+            handleSymbolKeyboardChange();
+        } else if (primaryCode == KeyCode.KEYCODE_LANGUAGE_CHANGE && mInputView != null) {
             handleLanguageSwitch();
-            return;
-        } else if (primaryCode == KeyCode.KEYCODE_OPTIONS) {
-            // Show a menu or somethin'
-        } else if (primaryCode == Keyboard.KEYCODE_MODE_CHANGE
-                && mInputView != null) {
-            CustomKeyboard current = mInputView.getKeyboard();
-            if (current == mSymbolsKeyboard || current == mSymbolsShiftedKeyboard) {
-                setKeyboard(mQwertyKeyboard);
-            } else {
-                setKeyboard(mSymbolsKeyboard);
-                mSymbolsKeyboard.setShifted(false);
-            }
         } else if (primaryCode == KeyCode.KEYCODE_TRANSLATE) {
             handleTranslateKey();
+        } else if (primaryCode ==KeyCode.KEYCODE_BAN_QUAN_JIAO_SWITCH) {
+            handleBanQuanSwitch();
         } else {
             handleCharacter(primaryCode, keyCodes, label);
         }
@@ -557,6 +552,18 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         }
     }
 
+    private void handleBanQuanSwitch() {}
+
+    private void handleSymbolKeyboardChange() {
+        CustomKeyboard current = mInputView.getKeyboard();
+        if (current == mSymbolsKeyboard || current == mSymbolsShiftedKeyboard) {
+            setKeyboard(mQwertyKeyboard);
+        } else {
+            setKeyboard(mSymbolsKeyboard);
+            mSymbolsKeyboard.setShifted(false);
+        }
+    }
+
     private void handleTranslateKey() {
         switch (mTransKeyState) {
             case 0:
@@ -597,7 +604,6 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         if (mInputView == null) {
             return;
         }
-
         CustomKeyboard currentKeyboard = mInputView.getKeyboard();
         if (mQwertyKeyboard == currentKeyboard) {
             // Alphabet keyboard
@@ -652,7 +658,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     }
 
     private void handleLanguageSwitch() {
-        mInputMethodManager.switchToNextInputMethod(getToken(), false /* onlyCurrentIme */);
+        //mInputMethodManager.switchToNextInputMethod(getToken(), false /* onlyCurrentIme */);
     }
 
     private void checkToggleCapsLock() {

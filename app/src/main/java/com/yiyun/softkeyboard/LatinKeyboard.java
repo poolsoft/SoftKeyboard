@@ -76,7 +76,7 @@ public class LatinKeyboard extends CustomKeyboard {
         } else if (key.codes[0] == KeyCode.KEYCODE_MODE_CHANGE) {
             mModeChangeKey = key;
             mSavedModeChangeKey = new LatinKey(res, parent, x, y, parser);
-        } else if (key.codes[0] == KeyCode.KEYCODE_LANGUAGE_SWITCH) {
+        } else if (key.codes[0] == KeyCode.KEYCODE_LANGUAGE_CHANGE) {
             mLanguageSwitchKey = key;
             mSavedLanguageSwitchKey = new LatinKey(res, parent, x, y, parser);
         } else if (key.codes[0] == KeyCode.KEYCODE_TRANSLATE) {
@@ -116,7 +116,7 @@ public class LatinKeyboard extends CustomKeyboard {
      * This looks at the ime options given by the current editor, to set the
      * appropriate label on the keyboard's enter key (if it has one).
      */
-    void setImeOptions(Resources res, int options) {
+    public void setImeOptions(Resources res, int options) {
         if (mEnterKey == null) {
             return;
         }

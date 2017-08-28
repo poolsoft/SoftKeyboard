@@ -42,12 +42,13 @@ public class LatinKeyboardView extends CustomKeyboardView {
 
     @Override
     protected boolean onLongPress(Key key) {
-        if (key.codes[0] == KeyCode.KEYCODE_CANCEL) {
-            getOnKeyboardActionListener().onKey(KeyCode.KEYCODE_OPTIONS, null, "");
-            return true;
-        } else {
-            return super.onLongPress(key);
-        }
+//        if (key.codes[0] == KeyCode.KEYCODE_CANCEL) {
+//            getOnKeyboardActionListener().onKey(KeyCode.KEYCODE_OPTIONS, null, "");
+//            return true;
+//        } else {
+//            return super.onLongPress(key);
+//        }
+        return super.onLongPress(key);
     }
 
     void setSubtypeOnSpaceKey(final InputMethodSubtype subtype) {

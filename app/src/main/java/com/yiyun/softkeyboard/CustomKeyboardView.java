@@ -685,6 +685,7 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
             if (drawSingleKey && invalidKey != key) {
                 continue;
             }
+            paint.setColor(key.labelColor);
             int[] drawableState = key.getCurrentDrawableState();
             if (key.background != null) {
                 keyBackground = key.background;
@@ -915,9 +916,12 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
     }
 
     private void showKey(final int keyIndex) {
+        if (keyIndex < 0 || keyIndex >= mKeys.length)
+            return;
+        if (mKeys[keyIndex].showPreview == false)
+            return;
         final PopupWindow previewPopup = mPreviewPopup;
         final Key[] keys = mKeys;
-        if (keyIndex < 0 || keyIndex >= mKeys.length) return;
         Key key = keys[keyIndex];
         if (key.icon != null) {
             mPreviewText.setCompoundDrawables(null, null, null,
@@ -936,6 +940,7 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
         }
         mPreviewText.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        mPreviewText.setTextColor(getResources().getColor(R.color.colorKeyPreviewText));
         int popupWidth = Math.max(mPreviewText.getMeasuredWidth(), key.width
                 + mPreviewText.getPaddingLeft() + mPreviewText.getPaddingRight());
         final int popupHeight = mPreviewHeight;
