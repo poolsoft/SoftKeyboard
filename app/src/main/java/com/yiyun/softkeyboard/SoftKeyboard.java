@@ -50,8 +50,9 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private int mTransKeyState;
 
     private CustomKeyboard mSymbolsKeyboard;
-    private CustomKeyboard mSymbolsShiftedKeyboard;
-    private CustomKeyboard mQwertyKeyboard;
+    private CustomKeyboard mSymbolsMoreKeyboard;
+    private CustomKeyboard mEngKeyboard;
+    private CustomKeyboard mPinyinKeyboard;
 
     private CustomKeyboard mCurKeyboard;
 
@@ -72,7 +73,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
      * is called after creation and any configuration change.
      */
     @Override public void onInitializeInterface() {
-        if (mQwertyKeyboard != null) {
+        if (mEngKeyboard != null) {
             // Configuration changes can happen after the keyboard gets recreated,
             // so we need to be able to re-build the keyboards if the available
             // space has changed.
@@ -80,9 +81,13 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             if (displayWidth == mLastDisplayWidth) return;
             mLastDisplayWidth = displayWidth;
         }
-        mQwertyKeyboard = new CustomKeyboard(this, R.xml.qwerty);
-        mSymbolsKeyboard = new CustomKeyboard(this, R.xml.symbols);
-        mSymbolsShiftedKeyboard = new CustomKeyboard(this, R.xml.symbols_shift);
+        Log.d("[SoftKeyboard]", "");
+        Log.d("[SoftKeyboard]", "mEngKeyboard");
+        mEngKeyboard = new CustomKeyboard(this, R.xml.keyboard_en_qwerty);
+        Log.d("[SoftKeyboard]", "mPinyinKeyboard");
+        mPinyinKeyboard = new CustomKeyboard(this, R.xml.keyboard_pinyin_qwerty);
+        mSymbolsKeyboard = new CustomKeyboard(this, R.xml.keyboard_symbols);
+        mSymbolsMoreKeyboard = new CustomKeyboard(this, R.xml.keyboard_symbols_more);
     }
 
     /**
@@ -94,7 +99,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     @Override public View onCreateInputView() {
         mInputView = (CustomKeyboardView) getLayoutInflater().inflate(R.layout.input, null);
         mInputView.setOnKeyboardActionListener(this);
-        setKeyboard(mQwertyKeyboard);
+        setKeyboard(mEngKeyboard);
         return mInputView;
     }
 
@@ -143,13 +148,13 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         switch (attribute.inputType & InputType.TYPE_MASK_CLASS) {
             case InputType.TYPE_CLASS_NUMBER:
             case InputType.TYPE_CLASS_DATETIME:
-                // Numbers and dates default to the symbols keyboard, with
+                // Numbers and dates default to the keyboard_symbols keyboard, with
                 // no extra features.
                 mCurKeyboard = mSymbolsKeyboard;
                 break;
 
             case InputType.TYPE_CLASS_PHONE:
-                // Phones will also default to the symbols keyboard, though
+                // Phones will also default to the keyboard_symbols keyboard, though
                 // often you will want to have a dedicated phone keyboard.
                 mCurKeyboard = mSymbolsKeyboard;
                 break;
@@ -159,7 +164,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
                 // normal alphabetic keyboard, and assume that we should
                 // be doing predictive text (showing candidates as the
                 // user types).
-                mCurKeyboard = mQwertyKeyboard;
+                mCurKeyboard = mEngKeyboard;
                 mPredictionOn = true;
 
                 // We now look for a few special variations of text that will
@@ -199,7 +204,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             default:
                 // For all unknown input types, default to the alphabetic
                 // keyboard with no special features.
-                mCurKeyboard = mQwertyKeyboard;
+                mCurKeyboard = mEngKeyboard;
                 updateShiftKeyState(attribute);
         }
 
@@ -207,8 +212,9 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         // says it will do.
         //mCurKeyboard.setImeOptions(getResources(), attribute.imeOptions);
         mSymbolsKeyboard.setImeOptions(getResources(), attribute.imeOptions);
-        mSymbolsShiftedKeyboard.setImeOptions(getResources(), attribute.imeOptions);
-        mQwertyKeyboard.setImeOptions(getResources(), attribute.imeOptions);
+        mSymbolsMoreKeyboard.setImeOptions(getResources(), attribute.imeOptions);
+        mEngKeyboard.setImeOptions(getResources(), attribute.imeOptions);
+        mPinyinKeyboard.setImeOptions(getResources(), attribute.imeOptions);
     }
 
     /**
@@ -228,7 +234,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         // its window.
         setCandidatesViewShown(false);
 
-        mCurKeyboard = mQwertyKeyboard;
+        mCurKeyboard = mEngKeyboard;
         if (mInputView != null) {
             mInputView.closing();
         }
@@ -433,7 +439,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
      */
     private void updateShiftKeyState(EditorInfo attr) {
         if (attr != null
-                && mInputView != null && mQwertyKeyboard == mInputView.getKeyboard()) {
+                && mInputView != null && mEngKeyboard == mInputView.getKeyboard()) {
             int caps = 0;
             EditorInfo ei = getCurrentInputEditorInfo();
             if (ei != null && ei.inputType != InputType.TYPE_NULL) {
@@ -552,12 +558,22 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         }
     }
 
+    private void handleLanguageSwitch() {
+        //mInputMethodManager.switchToNextInputMethod(getToken(), false /* onlyCurrentIme */);
+        CustomKeyboard current = mInputView.getKeyboard();
+        if (current == mEngKeyboard) {
+            setKeyboard(mPinyinKeyboard);
+        } else {
+            setKeyboard(mEngKeyboard);
+        }
+    }
+
     private void handleBanQuanSwitch() {}
 
     private void handleSymbolKeyboardChange() {
         CustomKeyboard current = mInputView.getKeyboard();
-        if (current == mSymbolsKeyboard || current == mSymbolsShiftedKeyboard) {
-            setKeyboard(mQwertyKeyboard);
+        if (current == mSymbolsKeyboard || current == mSymbolsMoreKeyboard) {
+            setKeyboard(mEngKeyboard);
         } else {
             setKeyboard(mSymbolsKeyboard);
             mSymbolsKeyboard.setShifted(false);
@@ -605,16 +621,16 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             return;
         }
         CustomKeyboard currentKeyboard = mInputView.getKeyboard();
-        if (mQwertyKeyboard == currentKeyboard) {
+        if (mEngKeyboard == currentKeyboard) {
             // Alphabet keyboard
             checkToggleCapsLock();
             mInputView.setShifted(mCapsLock || !mInputView.isShifted());
         } else if (currentKeyboard == mSymbolsKeyboard) {
             mSymbolsKeyboard.setShifted(true);
-            setKeyboard(mSymbolsShiftedKeyboard);
-            mSymbolsShiftedKeyboard.setShifted(true);
-        } else if (currentKeyboard == mSymbolsShiftedKeyboard) {
-            mSymbolsShiftedKeyboard.setShifted(false);
+            setKeyboard(mSymbolsMoreKeyboard);
+            mSymbolsMoreKeyboard.setShifted(true);
+        } else if (currentKeyboard == mSymbolsMoreKeyboard) {
+            mSymbolsMoreKeyboard.setShifted(false);
             setKeyboard(mSymbolsKeyboard);
             mSymbolsKeyboard.setShifted(false);
         }
@@ -655,10 +671,6 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             return null;
         }
         return window.getAttributes().token;
-    }
-
-    private void handleLanguageSwitch() {
-        //mInputMethodManager.switchToNextInputMethod(getToken(), false /* onlyCurrentIme */);
     }
 
     private void checkToggleCapsLock() {

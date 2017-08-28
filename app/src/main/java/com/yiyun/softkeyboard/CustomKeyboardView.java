@@ -624,9 +624,10 @@ public class CustomKeyboardView extends View implements View.OnClickListener {
     @Override
     public void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        if (mKeyboard != null) {
-            mKeyboard.resize(w, h);
-        }
+        // annote this code for miss resize for the default keyboard
+        //if (mKeyboard != null) {
+        //    mKeyboard.resize(w, h);
+        //}
         // Release the buffer, if any and it will be reallocated on the next draw
         mBuffer = null;
     }

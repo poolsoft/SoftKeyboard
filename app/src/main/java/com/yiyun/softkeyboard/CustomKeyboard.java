@@ -306,10 +306,8 @@ public class CustomKeyboard {
             this.x = x;
             this.y = y;
 
-            Log.d(TAG, "Key attr count = "+parser.getAttributeCount());
             TypedArray a = res.obtainAttributes(Xml.asAttributeSet(parser),
                     R.styleable.Keyboard);
-            Log.d(TAG, "11110 n = "+a.getIndexCount());
 
             width = getDimensionOrFraction(a,
                     R.styleable.Keyboard_keyWidth,
