@@ -8,7 +8,7 @@
         <item name="keyTextColor">#FF000000</item>
         <item name="keyPreviewLayout">@layout/keyboard_key_preview</item>
         <item name="keyPreviewOffset">-12dip</item>
-        <item name="keyPreviewHeight">80dip</item>
+        <item name="keyPreviewHeight">64dip</item>
         <item name="labelTextSize">16sp</item>
         <item name="popupLayout">@layout/keyboard_popup_keyboard</item>
         <item name="verticalCorrection">-10dip</item>

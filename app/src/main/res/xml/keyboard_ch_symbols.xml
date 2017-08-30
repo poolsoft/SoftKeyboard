@@ -23,13 +23,13 @@
     <Row>
         <Key android:codes="126" android:keyLabel="~" android:showPreview="true"  android:horizontalGap="5%p" android:keyEdgeFlags="left"/>
         <Key android:codes="47" android:keyLabel="/" android:showPreview="true" />
-        <Key android:codes="58" android:keyLabel=":" android:showPreview="true" />
-        <Key android:codes="59" android:keyLabel=";" android:showPreview="true" />
+        <Key android:codes="58" android:keyLabel="：" android:showPreview="true" />
+        <Key android:codes="59" android:keyLabel="；" android:showPreview="true" />
         <Key android:codes="40" android:keyLabel="(" android:showPreview="true" />
         <Key android:codes="41" android:keyLabel=")" android:showPreview="true" />
         <Key android:codes="64" android:keyLabel="\@" android:showPreview="true" />
-        <Key android:codes="34" android:keyLabel="&quot;" android:showPreview="true" />
-        <Key android:codes="39" android:keyLabel="\'" android:showPreview="true" android:keyEdgeFlags="right"/>
+        <Key android:codes="34" android:keyLabel="“" android:showPreview="true" />
+        <Key android:codes="39" android:keyLabel="”" android:showPreview="true" android:keyEdgeFlags="right"/>
     </Row>
 
     <Row>
@@ -40,8 +40,8 @@
         <Key android:codes="45" android:keyLabel="-" android:showPreview="true" android:horizontalGap="1%p"/>
         <Key android:codes="95" android:keyLabel="_" android:showPreview="true" />
         <Key android:codes="35" android:keyLabel="\#" android:showPreview="true" />
-        <Key android:codes="63" android:keyLabel="\?" android:showPreview="true" />
-        <Key android:codes="33" android:keyLabel="!" android:showPreview="true" />
+        <Key android:codes="63" android:keyLabel="？" android:showPreview="true" />
+        <Key android:codes="33" android:keyLabel="！" android:showPreview="true" />
         <Key android:codes="44" android:keyLabel="·" android:showPreview="true" />
         <Key android:codes="44" android:keyLabel="…" android:showPreview="true" />
         <Key android:codes="-5" android:keyIcon="@drawable/selector_icon_delete"
@@ -55,13 +55,13 @@
             android:background="@drawable/selector_key_func_active" />
         <Key android:codes="-7" android:keyIcon="@drawable/icon_trans_yuan"
             android:keyWidth="11.5%p" />
-        <Key android:codes="44" android:keyLabel=","
+        <Key android:codes="44" android:keyLabel="，"
             android:keyWidth="10%p"/>
         <Key android:codes="32" android:keyIcon="@drawable/icon_space_voice"
             android:keyWidth="22.5%p" android:isRepeatable="true"/>
-        <Key android:codes="46" android:keyLabel="."
+        <Key android:codes="46" android:keyLabel="。"
             android:keyWidth="10%p"/>
-        <Key android:codes="-8" android:keyLabel="半"
+        <Key android:codes="-8" android:keyLabel="全"
             android:keyWidth="11.5%p" android:background="@drawable/selector_key_func" />
         <Key android:codes="10" android:keyIcon="@drawable/icon_return"
             android:keyWidth="23%p" android:keyEdgeFlags="right"

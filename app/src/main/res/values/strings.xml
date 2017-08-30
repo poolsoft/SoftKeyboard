@@ -15,6 +15,18 @@
     <string name="label_search_key">Search</string>
     <string name="label_translate_key">Translate</string>
 
+    <string name="label_go_key_ch">前往</string>
+    <string name="label_next_key_ch">下一项</string>
+    <string name="label_send_key_ch">发送</string>
+    <string name="label_search_key_ch">搜索</string>
+    <string name="label_translate_key_ch">翻译</string>
+
+    <string name="label_go_key_pt">Ir</string>
+    <string name="label_next_key_pt">Seguinte</string>
+    <string name="label_send_key_pt">Enviar</string>
+    <string name="label_search_key_pt">Pesquisa</string>
+    <string name="label_translate_key_pt">Traduzir</string>
+
     <!-- Titles for ImePreference -->
     <string name="settings_name">Sample Soft Keyboard Settings</string>
     <string name="language_selection_title">Input languages</string>

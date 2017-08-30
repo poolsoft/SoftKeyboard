@@ -37,6 +37,9 @@ public class CustomKeyboard {
     public static final int EDGE_TOP = 0x04;
     public static final int EDGE_BOTTOM = 0x08;
 
+    public enum LanguageType {TYPE_EN, TYPE_CH, TYPE_PT}
+    private LanguageType mlanguageType;
+
     /** Some special keys **/
     private Key mEnterKey;
     private Key mSpaceKey;
@@ -756,7 +759,6 @@ public class CustomKeyboard {
 
     protected Key createKeyFromXml(Resources res, Row parent, int x, int y,
                                             XmlResourceParser parser) {
-        Log.d("SoftKeyboard", "CustomKeyboard createKeyFromXml");
         Key key = new Key(res, parent, x, y, parser);
         if (key.codes[0] == 10) {
             mEnterKey = key;
@@ -895,7 +897,7 @@ public class CustomKeyboard {
      * This looks at the ime options given by the current editor, to set the
      * appropriate label on the keyboard's enter key (if it has one).
      */
-    public void setImeOptions(Resources res, int options) {
+    private void setImeOptions(Resources res, int options) {
         if (mEnterKey == null) {
             return;
         }
@@ -905,30 +907,58 @@ public class CustomKeyboard {
                 mEnterKey.iconPreview = null;
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
                 //mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
-                mEnterKey.label = res.getText(R.string.label_go_key);
                 mEnterKey.labelColor = res.getColor(R.color.colorKeyActiveLabel);
+                if (mlanguageType == LanguageType.TYPE_PT) {
+                    mEnterKey.label = res.getText(R.string.label_go_key_pt);
+                } else if (mlanguageType == LanguageType.TYPE_CH) {
+                    mEnterKey.label = res.getText(R.string.label_go_key_ch);
+                } else {
+                    mEnterKey.label = res.getText(R.string.label_go_key);
+                }
                 break;
+
             case EditorInfo.IME_ACTION_NEXT:
                 mEnterKey.iconPreview = null;
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
                 //mEnterKey.icon = res.getDrawable(R.drawable.icon_next);
-                mEnterKey.label = res.getText(R.string.label_next_key);
                 mEnterKey.labelColor = res.getColor(R.color.colorKeyActiveLabel);
+                if (mlanguageType == LanguageType.TYPE_PT) {
+                    mEnterKey.label = res.getText(R.string.label_next_key_pt);
+                } else if (mlanguageType == LanguageType.TYPE_CH) {
+                    mEnterKey.label = res.getText(R.string.label_next_key_ch);
+                } else {
+                    mEnterKey.label = res.getText(R.string.label_next_key);
+                }
                 break;
+
             case EditorInfo.IME_ACTION_SEARCH:
                 mEnterKey.iconPreview = null;
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
                 //mEnterKey.icon = res.getDrawable(R.drawable.icon_search);
-                mEnterKey.label = res.getText(R.string.label_search_key);
                 mEnterKey.labelColor = res.getColor(R.color.colorKeyActiveLabel);
+                if (mlanguageType == LanguageType.TYPE_PT) {
+                    mEnterKey.label = res.getText(R.string.label_search_key_pt);
+                } else if (mlanguageType == LanguageType.TYPE_CH) {
+                    mEnterKey.label = res.getText(R.string.label_search_key_ch);
+                } else {
+                    mEnterKey.label = res.getText(R.string.label_search_key);
+                }
                 break;
+
             case EditorInfo.IME_ACTION_SEND:
                 mEnterKey.iconPreview = null;
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func_active);
                 //mEnterKey.icon = res.getDrawable(R.drawable.icon_send);
-                mEnterKey.label = res.getText(R.string.label_send_key);
                 mEnterKey.labelColor = res.getColor(R.color.colorKeyActiveLabel);
+                if (mlanguageType == LanguageType.TYPE_PT) {
+                    mEnterKey.label = res.getText(R.string.label_send_key_pt);
+                } else if (mlanguageType == LanguageType.TYPE_CH) {
+                    mEnterKey.label = res.getText(R.string.label_send_key_ch);
+                } else {
+                    mEnterKey.label = res.getText(R.string.label_send_key);
+                }
                 break;
+
             default:
                 mEnterKey.background = res.getDrawable(R.drawable.selector_key_func);
                 mEnterKey.icon = res.getDrawable(R.drawable.icon_return);
@@ -939,5 +969,14 @@ public class CustomKeyboard {
 
     public Key getTranslateKey() {
         return mTranslateKey;
+    }
+
+    private void setLanguageType(LanguageType languageType) {
+        this.mlanguageType = languageType;
+    }
+
+    public void configKeyboard(Resources res, int editorInfo, LanguageType languageType) {
+        setLanguageType(languageType);
+        setImeOptions(res, editorInfo);
     }
 }

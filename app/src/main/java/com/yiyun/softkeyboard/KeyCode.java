@@ -14,4 +14,6 @@ public class KeyCode {
     public static final int KEYCODE_ALT = -6;
     public static final int KEYCODE_TRANSLATE = -7;
     public static final int KEYCODE_BAN_QUAN_JIAO_SWITCH = -8;
+
+    public static final int KEYCODE_ENTER = 10;
 }

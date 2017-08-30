@@ -56,13 +56,13 @@
                 android:background="@drawable/selector_key_func" />
         <Key android:codes="-7" android:keyIcon="@drawable/icon_trans_yuan"
                 android:keyWidth="11.5%p" />
-        <Key android:codes="44" android:keyLabel=","
+        <Key android:codes="44" android:keyLabel="，"
                 android:keyWidth="10%p" />
         <Key android:codes="32" android:keyIcon="@drawable/icon_space_voice"
                 android:keyWidth="22.5%p" android:isRepeatable="true"/>
-        <Key android:codes="46" android:keyLabel="."
+        <Key android:codes="46" android:keyLabel="。"
                 android:keyWidth="10%p"/>
-        <Key android:codes="-4" android:keyLabel="中"
+        <Key android:codes="-4" android:keyIcon="@drawable/icon_ch_en"
                 android:keyWidth="11.5%p" android:background="@drawable/selector_key_func" />
         <Key android:codes="10" android:keyIcon="@drawable/sym_keyboard_return"
                 android:keyWidth="23%p" android:keyEdgeFlags="right"

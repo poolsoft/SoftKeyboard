@@ -47,12 +47,19 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private boolean mCapsLock;
     private long mLastShiftTime;
     private long mMetaState;
+
     private int mTransKeyState;
+    private int mQuanBanKeyState;
+
+    private int mEditorInfo;
 
     private CustomKeyboard mSymbolsKeyboard;
     private CustomKeyboard mSymbolsMoreKeyboard;
+    private CustomKeyboard mSymbolsKeyboardCh;
+    private CustomKeyboard mSymbolsMoreKeyboardCh;
     private CustomKeyboard mEngKeyboard;
     private CustomKeyboard mPinyinKeyboard;
+    private CustomKeyboard mPotKeyboard;
 
     private CustomKeyboard mCurKeyboard;
 
@@ -81,13 +88,13 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             if (displayWidth == mLastDisplayWidth) return;
             mLastDisplayWidth = displayWidth;
         }
-        Log.d("[SoftKeyboard]", "");
-        Log.d("[SoftKeyboard]", "mEngKeyboard");
         mEngKeyboard = new CustomKeyboard(this, R.xml.keyboard_en_qwerty);
-        Log.d("[SoftKeyboard]", "mPinyinKeyboard");
         mPinyinKeyboard = new CustomKeyboard(this, R.xml.keyboard_pinyin_qwerty);
+        mPotKeyboard = new CustomKeyboard(this, R.xml.keyboard_pt_qwerty);
         mSymbolsKeyboard = new CustomKeyboard(this, R.xml.keyboard_symbols);
         mSymbolsMoreKeyboard = new CustomKeyboard(this, R.xml.keyboard_symbols_more);
+        mSymbolsKeyboardCh = new CustomKeyboard(this, R.xml.keyboard_ch_symbols);
+        mSymbolsMoreKeyboardCh = new CustomKeyboard(this, R.xml.keyboard_ch_symbols_more);
     }
 
     /**
@@ -107,6 +114,13 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         final boolean shouldSupportLanguageSwitchKey =
                 mInputMethodManager.shouldOfferSwitchingToNextInputMethod(getToken());
         //nextKeyboard.setLanguageSwitchKeyVisibility(true);
+        CustomKeyboard.LanguageType type = CustomKeyboard.LanguageType.TYPE_EN;
+        if (mCurKeyboard == mPinyinKeyboard) {
+            type = CustomKeyboard.LanguageType.TYPE_CH;
+        } else if (mCurKeyboard == mPotKeyboard) {
+            type = CustomKeyboard.LanguageType.TYPE_PT;
+        }
+        nextKeyboard.configKeyboard(getResources(), mEditorInfo, type);
         mInputView.setKeyboard(nextKeyboard);
     }
 
@@ -211,10 +225,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         // Update the label on the enter key, depending on what the application
         // says it will do.
         //mCurKeyboard.setImeOptions(getResources(), attribute.imeOptions);
-        mSymbolsKeyboard.setImeOptions(getResources(), attribute.imeOptions);
-        mSymbolsMoreKeyboard.setImeOptions(getResources(), attribute.imeOptions);
-        mEngKeyboard.setImeOptions(getResources(), attribute.imeOptions);
-        mPinyinKeyboard.setImeOptions(getResources(), attribute.imeOptions);
+        mEditorInfo = attribute.imeOptions;
     }
 
     /**
@@ -497,20 +508,21 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             }
             sendKey(primaryCode);
             updateShiftKeyState(getCurrentInputEditorInfo());
+        } else if (primaryCode == KeyCode.KEYCODE_ENTER) {
+            handleEnter();
         } else if (primaryCode == KeyCode.KEYCODE_DELETE) {
             handleBackspace();
         } else if (primaryCode == KeyCode.KEYCODE_SHIFT) {
             handleShift();
         } else if (primaryCode == KeyCode.KEYCODE_CANCEL) {
             handleClose();
-            return;
         } else if (primaryCode == KeyCode.KEYCODE_MODE_CHANGE && mInputView != null) {
             handleSymbolKeyboardChange();
         } else if (primaryCode == KeyCode.KEYCODE_LANGUAGE_CHANGE && mInputView != null) {
             handleLanguageSwitch();
         } else if (primaryCode == KeyCode.KEYCODE_TRANSLATE) {
             handleTranslateKey();
-        } else if (primaryCode ==KeyCode.KEYCODE_BAN_QUAN_JIAO_SWITCH) {
+        } else if (primaryCode == KeyCode.KEYCODE_BAN_QUAN_JIAO_SWITCH) {
             handleBanQuanSwitch();
         } else {
             handleCharacter(primaryCode, keyCodes, label);
@@ -562,21 +574,36 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         //mInputMethodManager.switchToNextInputMethod(getToken(), false /* onlyCurrentIme */);
         CustomKeyboard current = mInputView.getKeyboard();
         if (current == mEngKeyboard) {
-            setKeyboard(mPinyinKeyboard);
+            mCurKeyboard = mPinyinKeyboard;
         } else {
-            setKeyboard(mEngKeyboard);
+            mCurKeyboard = mEngKeyboard;
+        }
+        setKeyboard(mCurKeyboard);
+    }
+
+    private void handleBanQuanSwitch() {
+        CustomKeyboard current = mInputView.getKeyboard();
+        if (current == mSymbolsKeyboard) {
+            setKeyboard(mSymbolsKeyboardCh);
+        } else if (current == mSymbolsMoreKeyboard) {
+            setKeyboard(mSymbolsMoreKeyboardCh);
+        } else if (current == mSymbolsKeyboardCh) {
+            setKeyboard(mSymbolsKeyboard);
+        } else if (current == mSymbolsMoreKeyboardCh) {
+            setKeyboard(mSymbolsMoreKeyboard);
         }
     }
 
-    private void handleBanQuanSwitch() {}
-
     private void handleSymbolKeyboardChange() {
         CustomKeyboard current = mInputView.getKeyboard();
-        if (current == mSymbolsKeyboard || current == mSymbolsMoreKeyboard) {
-            setKeyboard(mEngKeyboard);
+        if (current == mSymbolsKeyboard ||
+                current == mSymbolsMoreKeyboard ||
+                current == mSymbolsKeyboardCh ||
+                current == mSymbolsMoreKeyboardCh) {
+            setKeyboard(mCurKeyboard);
         } else {
-            setKeyboard(mSymbolsKeyboard);
             mSymbolsKeyboard.setShifted(false);
+            setKeyboard(mSymbolsKeyboard);
         }
     }
 
@@ -616,6 +643,10 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         updateShiftKeyState(getCurrentInputEditorInfo());
     }
 
+    private void handleEnter() {
+        keyDownUp(KeyEvent.KEYCODE_ENTER);
+    }
+
     private void handleShift() {
         if (mInputView == null) {
             return;
@@ -633,6 +664,14 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             mSymbolsMoreKeyboard.setShifted(false);
             setKeyboard(mSymbolsKeyboard);
             mSymbolsKeyboard.setShifted(false);
+        } else if (currentKeyboard == mSymbolsKeyboardCh) {
+            mSymbolsKeyboardCh.setShifted(true);
+            setKeyboard(mSymbolsMoreKeyboardCh);
+            mSymbolsMoreKeyboardCh.setShifted(true);
+        } else if (currentKeyboard == mSymbolsMoreKeyboardCh) {
+            mSymbolsMoreKeyboardCh.setShifted(false);
+            setKeyboard(mSymbolsKeyboardCh);
+            mSymbolsKeyboardCh.setShifted(false);
         }
     }
 
