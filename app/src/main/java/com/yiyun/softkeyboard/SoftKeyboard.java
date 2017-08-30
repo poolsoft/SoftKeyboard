@@ -1,6 +1,7 @@
 package com.yiyun.softkeyboard;
 
 import android.app.Dialog;
+import android.graphics.drawable.Drawable;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.os.IBinder;
@@ -48,8 +49,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private long mLastShiftTime;
     private long mMetaState;
 
-    private int mTransKeyState;
-    private int mQuanBanKeyState;
+    private int mTransKeyState = 0;
 
     private int mEditorInfo;
 
@@ -61,6 +61,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private CustomKeyboard mPinyinKeyboard;
     private CustomKeyboard mPotKeyboard;
 
+    /** mEngKeyboard or mPinyinKeyboard or mPotKeyboard */
     private CustomKeyboard mCurKeyboard;
 
     private String mWordSeparators;
@@ -111,16 +112,19 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     }
 
     private void setKeyboard(CustomKeyboard nextKeyboard) {
-        final boolean shouldSupportLanguageSwitchKey =
-                mInputMethodManager.shouldOfferSwitchingToNextInputMethod(getToken());
-        //nextKeyboard.setLanguageSwitchKeyVisibility(true);
-        CustomKeyboard.LanguageType type = CustomKeyboard.LanguageType.TYPE_EN;
+        CustomKeyboard.LanguageType languageType = CustomKeyboard.LanguageType.TYPE_EN;
         if (mCurKeyboard == mPinyinKeyboard) {
-            type = CustomKeyboard.LanguageType.TYPE_CH;
+            languageType = CustomKeyboard.LanguageType.TYPE_CH;
         } else if (mCurKeyboard == mPotKeyboard) {
-            type = CustomKeyboard.LanguageType.TYPE_PT;
+            languageType = CustomKeyboard.LanguageType.TYPE_PT;
         }
-        nextKeyboard.configKeyboard(getResources(), mEditorInfo, type);
+        Drawable translateKeyIcon = getResources().getDrawable(R.drawable.icon_trans_yuan);
+        if (mTransKeyState == 1) {
+            translateKeyIcon = getResources().getDrawable(R.drawable.icon_trans_yi);
+        } else if (mTransKeyState == 2) {
+            translateKeyIcon = getResources().getDrawable(R.drawable.icon_trans_shuang);
+        }
+        nextKeyboard.configKeyboard(getResources(), mEditorInfo, languageType, translateKeyIcon);
         mInputView.setKeyboard(nextKeyboard);
     }
 
@@ -652,7 +656,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             return;
         }
         CustomKeyboard currentKeyboard = mInputView.getKeyboard();
-        if (mEngKeyboard == currentKeyboard) {
+        if (currentKeyboard == mEngKeyboard || currentKeyboard == mPinyinKeyboard || currentKeyboard == mPotKeyboard) {
             // Alphabet keyboard
             checkToggleCapsLock();
             mInputView.setShifted(mCapsLock || !mInputView.isShifted());

@@ -975,8 +975,9 @@ public class CustomKeyboard {
         this.mlanguageType = languageType;
     }
 
-    public void configKeyboard(Resources res, int editorInfo, LanguageType languageType) {
+    public void configKeyboard(Resources res, int editorInfo, LanguageType languageType, Drawable translateKeyIcon) {
         setLanguageType(languageType);
         setImeOptions(res, editorInfo);
+        mTranslateKey.icon = translateKeyIcon;
     }
 }
