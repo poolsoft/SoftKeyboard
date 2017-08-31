@@ -38,7 +38,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private InputMethodManager mInputMethodManager;
 
     private CustomKeyboardView mInputView;
-    private CandidateView mCandidateView;
+    private CandidateViewContainer mCandidateView;
     private CompletionInfo[] mCompletions;
 
     private StringBuilder mComposing = new StringBuilder();
@@ -133,8 +133,10 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
      * be generated, like {@link #onCreateInputView}.
      */
     @Override public View onCreateCandidatesView() {
-        mCandidateView = new CandidateView(this);
+//        mCandidateView = new CandidateView(this);
+        mCandidateView = (CandidateViewContainer) getLayoutInflater().inflate(R.layout.candidate_view, null);
         mCandidateView.setService(this);
+        setCandidatesViewShown(true);
         return mCandidateView;
     }
 
@@ -247,7 +249,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         // a particular editor, to avoid popping the underlying application
         // up and down if the user is entering text into the bottom of
         // its window.
-        setCandidatesViewShown(false);
+//        setCandidatesViewShown(false);
 
         mCurKeyboard = mEngKeyboard;
         if (mInputView != null) {
