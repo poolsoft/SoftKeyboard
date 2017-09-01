@@ -49,7 +49,7 @@ public class CandidateView extends View {
     private int[] mWordWidth = new int[MAX_SUGGESTIONS];
     private int[] mWordX = new int[MAX_SUGGESTIONS];
 
-    private static final int X_GAP = 10;
+    private static final int X_GAP = 20;
     
     private static final List<String> EMPTY_LIST = new ArrayList<String>();
 
@@ -57,6 +57,7 @@ public class CandidateView extends View {
     private int mColorRecommended;
     private int mColorOther;
     private int mVerticalPadding;
+    private int mHorizonalPadding;
     private Paint mPaint;
     private boolean mScrolled;
     private int mTargetScrollX;
@@ -80,10 +81,11 @@ public class CandidateView extends View {
 
         setBackgroundColor(r.getColor(R.color.candidate_background));
 
-        mColorNormal = r.getColor(R.color.candidate_normal);
-        mColorRecommended = r.getColor(R.color.candidate_recommended);
-        mColorOther = r.getColor(R.color.candidate_other);
+        mColorNormal = r.getColor(R.color.candidate_text);
+        mColorRecommended = r.getColor(R.color.first_candidate_text);
+        mColorOther = r.getColor(R.color.candidate_split_line);
         mVerticalPadding = r.getDimensionPixelSize(R.dimen.candidate_vertical_padding);
+        mHorizonalPadding = r.getDimensionPixelSize(R.dimen.candidate_horizonal_padding);
 
         mPaint = new Paint();
         mPaint.setColor(mColorNormal);
@@ -137,7 +139,7 @@ public class CandidateView extends View {
         setBackgroundColor(r.getColor(R.color.candidate_background));
         
         mColorNormal = r.getColor(R.color.candidate_normal);
-        mColorRecommended = r.getColor(R.color.candidate_recommended);
+        mColorRecommended = r.getColor(R.color.first_candidate_text);
         mColorOther = r.getColor(R.color.candidate_other);
         mVerticalPadding = r.getDimensionPixelSize(R.dimen.candidate_vertical_padding);
         
@@ -207,6 +209,7 @@ public class CandidateView extends View {
      */
     @Override
     protected void onDraw(Canvas canvas) {
+        SoftKeyboard.LOGD("CandidateView onDraw");
         if (canvas != null) {
             super.onDraw(canvas);
         }
@@ -232,8 +235,9 @@ public class CandidateView extends View {
 
         for (int i = 0; i < count; i++) {
             String suggestion = mSuggestions.get(i);
+            SoftKeyboard.LOGD("draw "+i+" "+suggestion);
             float textWidth = paint.measureText(suggestion);
-            final int wordWidth = (int) textWidth + X_GAP * 2;
+            final int wordWidth = (int) textWidth + mHorizonalPadding * 2;
 
             mWordX[i] = x;
             mWordWidth[i] = wordWidth;
@@ -253,9 +257,9 @@ public class CandidateView extends View {
                     paint.setFakeBoldText(true);
                     paint.setColor(mColorRecommended);
                 } else if (i != 0) {
-                    paint.setColor(mColorOther);
+                    paint.setColor(mColorNormal);
                 }
-                canvas.drawText(suggestion, x + X_GAP, y, paint);
+                canvas.drawText(suggestion, x + mHorizonalPadding, y, paint);
                 paint.setColor(mColorOther); 
                 canvas.drawLine(x + wordWidth + 0.5f, bgPadding.top, 
                         x + wordWidth + 0.5f, height + 1, paint);
@@ -293,6 +297,7 @@ public class CandidateView extends View {
         clear();
         if (suggestions != null) {
             mSuggestions = new ArrayList<String>(suggestions);
+            SoftKeyboard.LOGD("mSuggestions.size = "+mSuggestions.size());
         }
         mTypedWordValid = typedWordValid;
         scrollTo(0, 0);

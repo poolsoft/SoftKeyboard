@@ -7,8 +7,14 @@
     <color name="candidate_normal">#FF000000</color>
     <color name="candidate_recommended">#FFE35900</color>
     <color name="candidate_other">#ff808080</color>
-    <color name="candidate_background">#bbffffff</color>
     <color name="candidate_line_bg">#d1cfcf</color>
+
+    <color name="candidate_split_line">#00000000</color>
+    <color name="candidate_text">#FF000000</color>
+    <color name="first_candidate_text">#FF307bf6</color>
+    <color name="candidate_background">#FFFFFFFF</color>
+
+    <color name="composing_text">#FF000000</color>
 
     <color name="button_bg_normal">#00000000</color>
     <color name="button_bg_pressed">#d1cfcf</color>

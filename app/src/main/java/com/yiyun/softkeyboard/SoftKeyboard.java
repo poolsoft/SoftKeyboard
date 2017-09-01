@@ -23,7 +23,7 @@ import java.util.List;
 
 public class SoftKeyboard extends InputMethodService implements CustomKeyboardView.OnKeyboardActionListener {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     /**
      * This boolean indicates the optional example code for performing
@@ -37,8 +37,6 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
 
     private InputMethodManager mInputMethodManager;
 
-    private CustomKeyboardView mInputView;
-    private CandidateViewContainer mCandidateView;
     private CompletionInfo[] mCompletions;
 
     private StringBuilder mComposing = new StringBuilder();
@@ -53,6 +51,9 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
 
     private int mEditorInfo;
 
+    private CustomKeyboardView mInputView;
+    private CandidateViewContainer mCandidateViewContainer;
+
     private CustomKeyboard mSymbolsKeyboard;
     private CustomKeyboard mSymbolsMoreKeyboard;
     private CustomKeyboard mSymbolsKeyboardCh;
@@ -60,6 +61,8 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private CustomKeyboard mEngKeyboard;
     private CustomKeyboard mPinyinKeyboard;
     private CustomKeyboard mPotKeyboard;
+
+    private List<String> candidateWordList;
 
     /** mEngKeyboard or mPinyinKeyboard or mPotKeyboard */
     private CustomKeyboard mCurKeyboard;
@@ -89,6 +92,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             if (displayWidth == mLastDisplayWidth) return;
             mLastDisplayWidth = displayWidth;
         }
+
         mEngKeyboard = new CustomKeyboard(this, R.xml.keyboard_en_qwerty);
         mPinyinKeyboard = new CustomKeyboard(this, R.xml.keyboard_pinyin_qwerty);
         mPotKeyboard = new CustomKeyboard(this, R.xml.keyboard_pt_qwerty);
@@ -96,6 +100,8 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         mSymbolsMoreKeyboard = new CustomKeyboard(this, R.xml.keyboard_symbols_more);
         mSymbolsKeyboardCh = new CustomKeyboard(this, R.xml.keyboard_ch_symbols);
         mSymbolsMoreKeyboardCh = new CustomKeyboard(this, R.xml.keyboard_ch_symbols_more);
+
+        candidateWordList = new ArrayList<String>();
     }
 
     /**
@@ -134,10 +140,11 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
      */
     @Override public View onCreateCandidatesView() {
 //        mCandidateView = new CandidateView(this);
-        mCandidateView = (CandidateViewContainer) getLayoutInflater().inflate(R.layout.candidate_view, null);
-        mCandidateView.setService(this);
+        mCandidateViewContainer = (CandidateViewContainer) getLayoutInflater().inflate(R.layout.candidate_view, null);
+        mCandidateViewContainer.initViews();
+        mCandidateViewContainer.setService(this);
         setCandidatesViewShown(true);
-        return mCandidateView;
+        return mCandidateViewContainer;
     }
 
     /**
@@ -555,11 +562,19 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private void updateCandidates() {
         if (!mCompletionOn) {
             if (mComposing.length() > 0) {
-                ArrayList<String> list = new ArrayList<String>();
-                list.add(mComposing.toString());
-                setSuggestions(list, true, true);
+                candidateWordList.add(mComposing.toString());
+                setSuggestions(candidateWordList, true, true);
+                if (mCandidateViewContainer != null) {
+                    mCandidateViewContainer.setCandidateViewShown(true);
+                    mCandidateViewContainer.setComposingText(mComposing.toString());
+                }
             } else {
+                candidateWordList.clear();
                 setSuggestions(null, false, false);
+                if (mCandidateViewContainer != null) {
+                    mCandidateViewContainer.setCandidateViewShown(false);
+                    mCandidateViewContainer.setComposingText(mComposing.toString());
+                }
             }
         }
     }
@@ -571,8 +586,8 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         } else if (isExtractViewShown()) {
             setCandidatesViewShown(true);
         }
-        if (mCandidateView != null) {
-            mCandidateView.setSuggestions(suggestions, completions, typedWordValid);
+        if (mCandidateViewContainer != null) {
+            mCandidateViewContainer.setSuggestions(suggestions, completions, typedWordValid);
         }
     }
 
@@ -747,8 +762,8 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
                 && index < mCompletions.length) {
             CompletionInfo ci = mCompletions[index];
             getCurrentInputConnection().commitCompletion(ci);
-            if (mCandidateView != null) {
-                mCandidateView.clear();
+            if (mCandidateViewContainer != null) {
+                mCandidateViewContainer.clear();
             }
             updateShiftKeyState(getCurrentInputEditorInfo());
         } else if (mComposing.length() > 0) {
@@ -780,6 +795,12 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     }
 
     public void onRelease(int primaryCode) {
+    }
+
+    public static void LOGD(String log) {
+        if (DEBUG) {
+            Log.d("[SoftKeyboard]", log);
+        }
     }
 
 }

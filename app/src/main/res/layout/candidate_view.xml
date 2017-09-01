@@ -5,6 +5,7 @@
     android:layout_height="wrap_content">
 
     <LinearLayout
+        android:id="@+id/parent_layout"
         android:background="@color/candidate_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -16,9 +17,14 @@
             android:background="@color/candidate_line_bg"/>
 
         <TextView
+            android:id="@+id/composing_view"
             android:layout_width="match_parent"
             android:layout_height="26dp"
-            android:background="@color/candidate_background"/>
+            android:background="@color/candidate_background"
+            android:textColor="@color/composing_text"
+            android:textSize="16sp"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="6dp"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -31,19 +37,47 @@
             android:background="@color/candidate_background"
             android:orientation="horizontal">
 
-            <view
-                class="com.yiyun.softkeyboard.CandidateView"
+            <RelativeLayout
+                android:id="@+id/candidate_view_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="gone"/>
+                android:visibility="gone">
+
+                <ImageButton
+                    android:id="@+id/show_hide_more_cands_btn"
+                    android:background="@drawable/selector_button_logo"
+                    android:layout_width="44dp"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentRight="true"
+                    android:src="@drawable/icon_show_more_cands"/>
+
+                <TextView
+                    android:id="@+id/cands_split_view"
+                    android:layout_width="1px"
+                    android:layout_height="match_parent"
+                    android:layout_toLeftOf="@+id/show_hide_more_cands_btn"
+                    android:background="#dd000000"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="6dp"/>
+
+                <view
+                    class="com.yiyun.softkeyboard.CandidateView"
+                    android:id="@+id/candidate_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorAccent"/>
+
+            </RelativeLayout>
 
             <RelativeLayout
+                android:id="@+id/toolbar_view_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/candidate_background"
                 android:gravity="center_vertical">
                 
                 <ImageButton
+                    android:id="@+id/logo_btn"
                     android:background="@drawable/selector_button_logo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -53,6 +87,7 @@
                     android:layout_marginLeft="6dp"/>
 
                 <ImageButton
+                    android:id="@+id/close_kb_btn"
                     android:background="@drawable/selector_button_logo"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
