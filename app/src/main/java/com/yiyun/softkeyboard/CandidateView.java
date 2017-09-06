@@ -21,6 +21,7 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -43,8 +44,10 @@ public class CandidateView extends View {
     
     private Rect mBgPadding;
 
-    private static final int MAX_SUGGESTIONS = 32;
+    private static final int MAX_SUGGESTIONS = 128;
     private static final int SCROLL_PIXELS = 20;
+    private static final int MAX_SCROLL_X_DP = 100;
+    private static final int DISTANCE_TRIGGER_ONSCROLL = 6;
     
     private int[] mWordWidth = new int[MAX_SUGGESTIONS];
     private int[] mWordX = new int[MAX_SUGGESTIONS];
@@ -54,12 +57,14 @@ public class CandidateView extends View {
     private static final List<String> EMPTY_LIST = new ArrayList<String>();
 
     private int mColorNormal;
+    private int mColorPressed;
     private int mColorRecommended;
     private int mColorOther;
     private int mVerticalPadding;
     private int mHorizonalPadding;
     private Paint mPaint;
     private boolean mScrolled;
+    private int mScrollX;
     private int mTargetScrollX;
     
     private int mTotalWidth;
@@ -68,20 +73,22 @@ public class CandidateView extends View {
 
     public CandidateView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mSelectionHighlight = context.getResources().getDrawable(
-                android.R.drawable.list_selector_background);
-        mSelectionHighlight.setState(new int[] {
-                android.R.attr.state_enabled,
-                android.R.attr.state_focused,
-                android.R.attr.state_window_focused,
-                android.R.attr.state_pressed
-        });
+//        mSelectionHighlight = context.getResources().getDrawable(
+//                android.R.drawable.list_selector_background);
+//        mSelectionHighlight.setState(new int[] {
+//                android.R.attr.state_enabled,
+//                android.R.attr.state_focused,
+//                android.R.attr.state_window_focused,
+//                android.R.attr.state_pressed
+//        });
+        mSelectionHighlight = new ColorDrawable(context.getResources().getColor(R.color.candidate_background_pressed));
 
         Resources r = context.getResources();
 
         setBackgroundColor(r.getColor(R.color.candidate_background));
 
-        mColorNormal = r.getColor(R.color.candidate_text);
+        mColorNormal = r.getColor(R.color.candidate_text_normal);
+        mColorPressed = r.getColor(R.color.candidate_text_pressed);
         mColorRecommended = r.getColor(R.color.first_candidate_text);
         mColorOther = r.getColor(R.color.candidate_split_line);
         mVerticalPadding = r.getDimensionPixelSize(R.dimen.candidate_vertical_padding);
@@ -97,73 +104,50 @@ public class CandidateView extends View {
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2,
                                     float distanceX, float distanceY) {
-                mScrolled = true;
-                int sx = getScrollX();
-                sx += distanceX;
-                if (sx < 0) {
-                    sx = 0;
+                if (!mScrolled) {
+                    if (Math.abs(e2.getX() - e1.getX())
+                            < DISTANCE_TRIGGER_ONSCROLL * getResources().getDisplayMetrics().density) {
+                        return false;
+                    }
                 }
-                if (sx + getWidth() > mTotalWidth) {
-                    sx -= distanceX;
-                }
-                mTargetScrollX = sx;
-                scrollTo(sx, getScrollY());
-                invalidate();
-                return true;
-            }
-        });
-        setHorizontalFadingEdgeEnabled(true);
-        setWillNotDraw(false);
-        setHorizontalScrollBarEnabled(false);
-        setVerticalScrollBarEnabled(false);
-    }
 
-    /**
-     * Construct a CandidateView for showing suggested words for completion.
-     * @param context
-     * @param attrs
-     */
-    public CandidateView(Context context) {
-        super(context);
-        mSelectionHighlight = context.getResources().getDrawable(
-                android.R.drawable.list_selector_background);
-        mSelectionHighlight.setState(new int[] {
-                android.R.attr.state_enabled,
-                android.R.attr.state_focused,
-                android.R.attr.state_window_focused,
-                android.R.attr.state_pressed
-        });
-
-        Resources r = context.getResources();
-        
-        setBackgroundColor(r.getColor(R.color.candidate_background));
-        
-        mColorNormal = r.getColor(R.color.candidate_normal);
-        mColorRecommended = r.getColor(R.color.first_candidate_text);
-        mColorOther = r.getColor(R.color.candidate_other);
-        mVerticalPadding = r.getDimensionPixelSize(R.dimen.candidate_vertical_padding);
-        
-        mPaint = new Paint();
-        mPaint.setColor(mColorNormal);
-        mPaint.setAntiAlias(true);
-        mPaint.setTextSize(r.getDimensionPixelSize(R.dimen.candidate_font_height));
-        mPaint.setStrokeWidth(0);
-        
-        mGestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onScroll(MotionEvent e1, MotionEvent e2,
-                    float distanceX, float distanceY) {
                 mScrolled = true;
-                int sx = getScrollX();
-                sx += distanceX;
-                if (sx < 0) {
-                    sx = 0;
+//                int sx = getScrollX();
+//                sx += distanceX;
+//                if (sx < 0) {
+//                    sx = 0;
+//                }
+//                if (sx + getWidth() > mTotalWidth) {
+//                    sx -= distanceX;
+//                }
+//                if (mTotalWidth < getWidth()) {
+//                    sx = 0;
+//                }
+//                mTargetScrollX = sx;
+//                scrollTo(sx, getScrollY());
+//                invalidate();
+
+                int maxScrollX = (int) getResources().getDisplayMetrics().density * MAX_SCROLL_X_DP;
+                mScrollX += distanceX;
+                double xToScroll = mScrollX;
+                if (mScrollX < 0) {
+                    if (Math.abs(mScrollX) > maxScrollX * 3.14 / 2) {
+                        xToScroll = maxScrollX * 3.14 / 2;
+                    }
+                    xToScroll = -Math.sin(Math.abs(xToScroll) / maxScrollX) * maxScrollX;
                 }
-                if (sx + getWidth() > mTotalWidth) {                    
-                    sx -= distanceX;
+                if (mScrollX + getWidth() > mTotalWidth) {
+                    xToScroll = mScrollX + getWidth() - mTotalWidth;
+                    if (xToScroll > maxScrollX * 3.14 / 2) {
+                        xToScroll = maxScrollX * 3.14 / 2;
+                    }
+                    xToScroll = mTotalWidth - getWidth() + Math.sin(xToScroll / maxScrollX) * maxScrollX;
                 }
-                mTargetScrollX = sx;
-                scrollTo(sx, getScrollY());
+                if (mTotalWidth < getWidth()) {
+                    xToScroll = 0;
+                }
+                mTargetScrollX = (int)xToScroll;
+                scrollTo(mTargetScrollX, getScrollY());
                 invalidate();
                 return true;
             }
@@ -209,7 +193,7 @@ public class CandidateView extends View {
      */
     @Override
     protected void onDraw(Canvas canvas) {
-        SoftKeyboard.LOGD("CandidateView onDraw");
+        //SoftKeyboard.LOGD("CandidateView onDraw");
         if (canvas != null) {
             super.onDraw(canvas);
         }
@@ -235,29 +219,34 @@ public class CandidateView extends View {
 
         for (int i = 0; i < count; i++) {
             String suggestion = mSuggestions.get(i);
-            SoftKeyboard.LOGD("draw "+i+" "+suggestion);
+            //SoftKeyboard.LOGD("draw "+i+" "+suggestion);
             float textWidth = paint.measureText(suggestion);
             final int wordWidth = (int) textWidth + mHorizonalPadding * 2;
 
             mWordX[i] = x;
             mWordWidth[i] = wordWidth;
             paint.setColor(mColorNormal);
+            boolean pressed = false;
             if (touchX + scrollX >= x && touchX + scrollX < x + wordWidth && !scrolled) {
                 if (canvas != null) {
                     canvas.translate(x, 0);
                     mSelectionHighlight.setBounds(0, bgPadding.top, wordWidth, height);
                     mSelectionHighlight.draw(canvas);
                     canvas.translate(-x, 0);
+                    pressed = true;
                 }
                 mSelectedIndex = i;
             }
 
             if (canvas != null) {
-                if ((i == 1 && !typedWordValid) || (i == 0 && typedWordValid)) {
-                    paint.setFakeBoldText(true);
-                    paint.setColor(mColorRecommended);
-                } else if (i != 0) {
-                    paint.setColor(mColorNormal);
+                if (pressed) {
+                    paint.setColor(mColorPressed);
+                } else {
+                    if (i == 0) {
+                        paint.setColor(mColorRecommended);
+                    } else {
+                        paint.setColor(mColorNormal);
+                    }
                 }
                 canvas.drawText(suggestion, x + mHorizonalPadding, y, paint);
                 paint.setColor(mColorOther); 
@@ -297,11 +286,12 @@ public class CandidateView extends View {
         clear();
         if (suggestions != null) {
             mSuggestions = new ArrayList<String>(suggestions);
-            SoftKeyboard.LOGD("mSuggestions.size = "+mSuggestions.size());
+            //SoftKeyboard.LOGD("mSuggestions.size = "+mSuggestions.size());
         }
         mTypedWordValid = typedWordValid;
         scrollTo(0, 0);
         mTargetScrollX = 0;
+        mScrollX = 0;
         // Compute the total width
         //onDraw(null);
         invalidate();
@@ -347,6 +337,17 @@ public class CandidateView extends View {
                 if (mSelectedIndex >= 0) {
                     mService.pickSuggestionManually(mSelectedIndex);
                 }
+            } else {
+                if (mTotalWidth > getWidth()) {
+                    if (mTargetScrollX < 0) {
+                        mTargetScrollX = 0;
+                        scrollTo(0, getScrollY());
+                    } else if (mTargetScrollX + getWidth() > mTotalWidth) {
+                        mTargetScrollX = mTotalWidth - getWidth();
+                        scrollTo(mTotalWidth - getWidth(), getScrollY());
+                    }
+                }
+                mScrollX = mTargetScrollX;
             }
             mSelectedIndex = -1;
             removeHighlight();

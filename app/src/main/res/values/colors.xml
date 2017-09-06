@@ -10,9 +10,11 @@
     <color name="candidate_line_bg">#d1cfcf</color>
 
     <color name="candidate_split_line">#00000000</color>
-    <color name="candidate_text">#FF000000</color>
+    <color name="candidate_text_normal">#FF000000</color>
+    <color name="candidate_text_pressed">#FFFFFFFF</color>
     <color name="first_candidate_text">#FF307bf6</color>
     <color name="candidate_background">#FFFFFFFF</color>
+    <color name="candidate_background_pressed">#FF307bf6</color>
 
     <color name="composing_text">#FF000000</color>
 

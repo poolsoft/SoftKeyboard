@@ -113,7 +113,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     @Override public View onCreateInputView() {
         mInputView = (CustomKeyboardView) getLayoutInflater().inflate(R.layout.input, null);
         mInputView.setOnKeyboardActionListener(this);
-        setKeyboard(mEngKeyboard);
+        setKeyboard(mPinyinKeyboard);
         return mInputView;
     }
 
@@ -191,7 +191,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
                 // normal alphabetic keyboard, and assume that we should
                 // be doing predictive text (showing candidates as the
                 // user types).
-                mCurKeyboard = mEngKeyboard;
+                mCurKeyboard = mPinyinKeyboard;
                 mPredictionOn = true;
 
                 // We now look for a few special variations of text that will
@@ -231,7 +231,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
             default:
                 // For all unknown input types, default to the alphabetic
                 // keyboard with no special features.
-                mCurKeyboard = mEngKeyboard;
+                mCurKeyboard = mPinyinKeyboard;
                 updateShiftKeyState(attribute);
         }
 
@@ -562,7 +562,8 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     private void updateCandidates() {
         if (!mCompletionOn) {
             if (mComposing.length() > 0) {
-                candidateWordList.add(mComposing.toString());
+//                candidateWordList.add(mComposing.toString());
+                candidateWordList.add(0, mComposing.toString());
                 setSuggestions(candidateWordList, true, true);
                 if (mCandidateViewContainer != null) {
                     mCandidateViewContainer.setCandidateViewShown(true);
@@ -706,7 +707,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
         if (isAlphabet(primaryCode) && mPredictionOn) {
             Log.d("[SoftKeyboard]", "mPredictionOn");
             mComposing.append((char) primaryCode);
-            getCurrentInputConnection().setComposingText(mComposing, 1);
+//            getCurrentInputConnection().setComposingText(mComposing, 1);
             updateShiftKeyState(getCurrentInputEditorInfo());
             updateCandidates();
         } else {
