@@ -276,6 +276,7 @@ public class SoftKeyboard extends InputMethodService implements CustomKeyboardVi
     @Override
     public void onCurrentInputMethodSubtypeChanged(InputMethodSubtype subtype) {
         //mInputView.setSubtypeOnSpaceKey(subtype);
+        Log.e("input","onCurrentInput");
     }
 
     /**
